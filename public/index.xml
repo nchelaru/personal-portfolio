@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Perennial Beginner</title>
+    <link>/</link>
+    <description>Recent content on The Perennial Beginner</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 24 Nov 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>November 24, 2019</title>
+      <link>/post/bits-and-bytes-november-24-2019/</link>
+      <pubDate>Sun, 24 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/post/bits-and-bytes-november-24-2019/</guid>
+      <description> Hello x &amp;lt;- 8 y &amp;lt;- 10 x + y ## [1] 18  </description>
+    </item>
+    
+    <item>
+      <title>Set up your own Google Custom Search Engine</title>
+      <link>/blogs/set-up-your-own-google-custom-search-engine/</link>
+      <pubDate>Sat, 23 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/set-up-your-own-google-custom-search-engine/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Aliquam</title>
+      <link>/blogs/aliquam/</link>
+      <pubDate>Tue, 31 Oct 2017 22:42:51 -0500</pubDate>
+      
+      <guid>/blogs/aliquam/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Tempus</title>
+      <link>/blogs/tempus/</link>
+      <pubDate>Tue, 31 Oct 2017 22:26:13 -0500</pubDate>
+      
+      <guid>/blogs/tempus/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Magna</title>
+      <link>/blogs/magna/</link>
+      <pubDate>Tue, 31 Oct 2017 22:26:09 -0500</pubDate>
+      
+      <guid>/blogs/magna/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Ipsum</title>
+      <link>/blogs/ipsum/</link>
+      <pubDate>Tue, 31 Oct 2017 21:28:43 -0500</pubDate>
+      
+      <guid>/blogs/ipsum/</guid>
+      <description>Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis tempus.</description>
+    </item>
+    
+    <item>
+      <title>Hello R Markdown</title>
+      <link>/post/2015-07-23-r-rmarkdown/</link>
+      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
+      
+      <guid>/post/2015-07-23-r-rmarkdown/</guid>
+      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+You can embed an R code chunk like this:
+summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+    </item>
+    
+  </channel>
+</rss>

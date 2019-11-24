@@ -1,0 +1,22 @@
+---
+title: "November 24, 2019"
+author: 'Nancy Chelaru'
+date: '2019-11-24'
+slug: bits-and-bytes-november-24-2019
+categories: []
+tags: []
+description: ''
+image: 'pic10.jpg'
+keywords: ''
+draft: no
+---
+
+# Hello
+
+```{r}
+x <- 8
+
+y <- 10
+
+x + y
+```

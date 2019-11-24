@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574559615076.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3C410664",
+    "lastKnownWriteTime" : 1574557653,
+    "last_content_update" : 1574557653,
+    "path" : "~/Documents/GitHub/forty/themes/forty/exampleSite/config.toml",
+    "project_path" : "themes/forty/exampleSite/config.toml",
+    "properties" : {
+        "cursorPosition" : "27,2",
+        "scrollLine" : "20"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "toml"
+}
