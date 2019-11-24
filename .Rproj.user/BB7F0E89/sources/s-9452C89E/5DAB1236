@@ -5,13 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3949658882",
+    "hash" : "0",
     "id" : "5DAB1236",
-    "lastKnownWriteTime" : 1574546013,
-    "last_content_update" : 1574546013,
+    "lastKnownWriteTime" : 1574560234,
+    "last_content_update" : 1574560234616,
     "path" : "~/Documents/GitHub/forty/netlify.toml",
     "project_path" : "netlify.toml",
     "properties" : {
+        "cursorPosition" : "4,22",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [
