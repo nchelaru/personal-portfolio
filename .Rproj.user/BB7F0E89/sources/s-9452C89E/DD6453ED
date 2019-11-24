@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1179010175",
+    "hash" : "0",
     "id" : "DD6453ED",
-    "lastKnownWriteTime" : 1574559685,
-    "last_content_update" : 1574559685693,
+    "lastKnownWriteTime" : 1574559893,
+    "last_content_update" : 1574559893913,
     "path" : "~/Documents/GitHub/forty/config.toml",
     "project_path" : "config.toml",
     "properties" : {
-        "cursorPosition" : "27,27",
-        "scrollLine" : "20"
+        "cursorPosition" : "165,24",
+        "scrollLine" : "146"
     },
     "read_only" : false,
     "read_only_alternatives" : [

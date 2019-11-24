@@ -163,7 +163,7 @@ disqusShortname = ""
   [params.two]
     enable = true
     title = "A Bit About Me!"
-    subtitle =  """My name is Nancy Chelaru, a neuroscientist turned data scientist who loves discovering all that can be 
+    subtitle =  """I am a neuroscientist turned data scientist who loves discovering all that can be 
     done with some data and a little (or big) bit of elbow grease.
     
     Here you will find a collection of my notes and projects covering a range of topics in data mining and web development. 

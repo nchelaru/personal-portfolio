@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574559981057.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3949658882",
+    "id" : "5DAB1236",
+    "lastKnownWriteTime" : 1574546013,
+    "last_content_update" : 1574546013,
+    "path" : "~/Documents/GitHub/forty/netlify.toml",
+    "project_path" : "netlify.toml",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "toml"
+}
