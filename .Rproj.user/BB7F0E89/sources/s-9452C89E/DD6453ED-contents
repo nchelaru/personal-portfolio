@@ -98,10 +98,10 @@ disqusShortname = ""
       url = "https://biz-dash-app.herokuapp.com/"
 
     [[params.tiles.showcase]]
-      title = "Tempus"
-      subtitle = "Feugiat Amet Tempus"
+      title = "Machine learning to predict customer churn"
+      subtitle = "Integrating"
       image = "pic02.jpg"
-      url = "blogs/tempus"
+      url = "https://rf-streamlit.herokuapp.com/"
 
     [[params.tiles.showcase]]
       title = "Magna"
