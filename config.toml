@@ -138,6 +138,22 @@ disqusShortname = ""
       image = "podcast.png"
       url = "https://nancy-chelaru-centea.shinyapps.io/ds_podcast_db/"
       
+    [[params.tiles.showcase]]
+      title = "What we talk about when we talk about data science"
+      subtitle = "Analyzing changes in data science topic trends on Medium.com since 2009"
+      image = "medium_nlp.png"
+      url = "https://nancy-chelaru-centea.shinyapps.io/medium_ds_trends/"
+
+    [[params.tiles.showcase]]
+      title = "Interactive SQL tutorial"
+      subtitle = "Brush up on your database skills"
+      image = "data_arrange.png"
+      url = "https://nancy-chelaru-centea.shinyapps.io/SQL_learnr/"
+      
+
+
+
+
 
     # You can make more showcases by copy and pasting the code above
 
