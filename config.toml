@@ -82,7 +82,7 @@ disqusShortname = ""
     # To change the background image on the homepage banner, replace 'banner.jpg' in
     # the 'static/img' folder.
     title = "Hi, my name is Nancy Chelaru!"
-    subtitle = "Data scientist, perpetual tinkerer"
+    subtitle = "Data scientist"
     buttonText = "Go to my portfolio"
 
 
@@ -90,66 +90,55 @@ disqusShortname = ""
   [params.tiles]
     enable = true
     # Display your showcases here.
-    
+    [[params.tiles.showcase]]
+      title = "Exploring variable importance"
+      subtitle = "Methods for exploring variable importance prior to data modeling"
+      image = "pipeline.png"
+      url = "https://variable-importance.herokuapp.com/"
+
+    [[params.tiles.showcase]]
+      title = "Machine learning to predict customer churn"
+      subtitle = "Integrating unsupervised clustering and random forest models"
+      image = "forest.png"
+      url = "https://rf-streamlit.herokuapp.com/"
+
     [[params.tiles.showcase]]
       title = "Dynamic sales dashboard"
-      subtitle = "Made with Plotly Dash"
+      subtitle = "An interactive display of key sales and marketing information for an international online retail business, made using Plotly's Dash framework"
       image = "plotly_dashboard copy.png"
       url = "https://biz-dash-app.herokuapp.com/"
 
     [[params.tiles.showcase]]
-      title = "Machine learning to predict customer churn"
-      subtitle = "Integrating"
-      image = "pic02.jpg"
-      url = "https://rf-streamlit.herokuapp.com/"
-
-    [[params.tiles.showcase]]
-      title = "Magna"
-      subtitle = "Lorem Etiam Nullam"
-      image = "pic03.jpg"
-      url = "blogs/magna"
-
-    [[params.tiles.showcase]]
-      title = "Ipsum"
-      subtitle = "Nisl Sed Aliquam"
-      image = "pic04.jpg"
-      url = "blogs/ipsum"
-
-    [[params.tiles.showcase]]
-      title = "Consequat"
-      subtitle = "Ipsum Dolor Sit Amet"
-      image = "pic05.jpg"
-      url = "blogs/ipsum"
-
-    [[params.tiles.showcase]]
-      title = "Etiam"
-      subtitle = "Feugiat Amet Tempus"
-      image = "pic06.jpg"
-      url = "blogs/ipsum"
+      title = "Association rule mining"
+      subtitle = "A microlearning series on discovering patterns of co-occurrence in a large data set"
+      image = "mind_map.png"
+      url = "https://nancy-chelaru-centea.shinyapps.io/assn_rules_mining/"
       
     [[params.tiles.showcase]]
-      title = "Consequat"
-      subtitle = "Ipsum Dolor Sit Amet"
-      image = "pic05.jpg"
-      url = "blogs/ipsum"
+      title = "Grocery tracker"
+      subtitle = "A nifty little app with OCR receipt recognition and sales flyer browser"
+      image = "grocery_app.png"
+      url = "https://nancy-chelaru-centea.shinyapps.io/grocery_app/"
 
     [[params.tiles.showcase]]
-      title = "Etiam"
-      subtitle = "Feugiat Amet Tempus"
-      image = "pic06.jpg"
-      url = "blogs/ipsum"
+      title = "Survival analysis"
+      subtitle = "A microlearning series on analyzing time-dependent probability of an event of interest occurring"
+      image = "survival_analysis.png"
+      url = "https://survival-analysis.herokuapp.com/"
       
     [[params.tiles.showcase]]
-      title = "Consequat"
-      subtitle = "Ipsum Dolor Sit Amet"
-      image = "pic05.jpg"
-      url = "blogs/ipsum"
+      title = "Factor analysis of mixed-type data (FAMD)"
+      subtitle = "A microlearning series on principal dimensions analysis of data containing both continuous and categorical variables"
+      image = "famd.png"
+      url = "http://rpubs.com/nchelaru/famd"
 
     [[params.tiles.showcase]]
-      title = "Etiam"
-      subtitle = "Feugiat Amet Tempus"
-      image = "pic06.jpg"
-      url = "blogs/ipsum"  
+      title = "Data science podcast explorer"
+      subtitle = "Discover and listen to all the podcasts about data science, machine learning, and big data that iTunes has to offer"
+      image = "podcast.png"
+      url = "https://nancy-chelaru-centea.shinyapps.io/ds_podcast_db/"
+      
+
     # You can make more showcases by copy and pasting the code above
 
   [params.blog]
