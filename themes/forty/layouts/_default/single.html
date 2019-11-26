@@ -16,11 +16,13 @@
                     <section id="one">
                         <div class="inner">
                             <header class="major">
-                                <h1>{{ .Title}}</h1>
+                                <h1 data-toc-skip>{{ .Title}}</h1>
                             </header>
+                            <!--
                             {{ if .Params.image }}
                                 <span class="image main"><img src="{{ .Site.Params.baseURL }}/img/{{ .Section }}/{{ .Params.image }}" alt="" /></span>
                             {{ end }}
+                            -->
                             {{ .Content }}
                         </div>
                     </section>

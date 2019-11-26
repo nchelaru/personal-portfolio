@@ -5,13 +5,44 @@ date: '2019-11-24'
 slug: bits-and-bytes-november-24-2019
 categories: []
 tags: []
-description: ''
-image: 'pic10.jpg'
+image: bb_nov_24.jpg
+description: 'a run down'
 keywords: ''
 draft: no
 ---
 
-# Hello
+
+## Projects
+
+
+## Useful finds
+
+<div class="row">
+<div class="4u 12u$(small)">
+<center>
+<img src='https://github.com/JohnCoene/cicerone/raw/master/man/figures/logo.png' height='200px'>
+<a href='https://github.com/JohnCoene/cicerone'><h4><code>cicerone</code></h4></a>
+<p>Create guided tours of Shiny applications using driver.js.</p>
+</center>
+</div>
+<div class="4u 12u$(small)">
+<center>
+<img src='https://avatars3.githubusercontent.com/u/20401866?s=460&v=4' height='200px'>
+<a href='https://github.com/glin/reactable'><h4><code>reactable</code></h4></a>
+<p>Interactive data tables for R, based on the React Table library and made with reactR.</p>
+</center>
+</div>
+<div class="4u$ 12u$(small)">
+<center>
+<img src='https://github.com/JohnCoene/cicerone/raw/master/man/figures/logo.png' height='200px'>
+<a href='https://github.com/JohnCoene/cicerone'><h4><code>cicerone</code></h4></a>
+<p></p>
+</center>
+</div>
+</div>
+
+
+## Currently reading
 
 ```{r}
 x <- 8
@@ -20,3 +51,10 @@ y <- 10
 
 x + y
 ```
+
+## Noteworthy
+
+
+
+ 
+

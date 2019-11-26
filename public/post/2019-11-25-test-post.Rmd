@@ -1,0 +1,12 @@
+---
+title: test post
+author: ''
+date: '2019-11-25'
+slug: test-post
+categories: []
+tags: []
+description: ''
+image: 'pic06.jpg'
+keywords: ''
+draft: no
+---

@@ -177,7 +177,7 @@ disqusShortname = ""
     Along with Mihai Chelaru, I am also the co-curator of IntelligenceRefinery.io, a knowledge repository for all things 
     data science and software development. 
     
-    If you have any quetions, comments or suggestions, I would love to hear from you! 
+    If you have any questions, comments or suggestions, I would love to hear from you! 
     """
     
     buttonText = "Check out what I'm up to!"
@@ -223,35 +223,40 @@ disqusShortname = ""
   # Footer section
   [params.footer]
     enable = true
-    copyright = "Company Name"
+    copyright = "Nancy Chelaru"
 
     # Uses font awesome icons
     [[params.footer.social]]
       icon = "fa-twitter"
-      url= "https://www.twitter.com"
+      url= "https://www.twitter.com/n_chelaru"
       label = "Twitter"
 
-    [[params.footer.social]]
-      icon = "fa-facebook"
-      url= "https://www.facebook.com"
-      label = "Facebook"
+    #[[params.footer.social]]
+      #icon = "fa-facebook"
+      #url= "https://www.facebook.com"
+      #label = "Facebook"
 
-    [[params.footer.social]]
-      icon = "fa-instagram"
-      url= "https://www.instagram.com"
-      label = "Instagram"
+    #[[params.footer.social]]
+      #icon = "fa-instagram"
+      #url= "https://www.instagram.com"
+      #label = "Instagram"
     
     [[params.footer.social]]
       icon = "fa-github"
-      url= "https://www.github.com"
+      url= "https://www.github.com/nchelaru"
       label = "GitHub"
 
     [[params.footer.social]]
       icon = "fa-linkedin"
-      url= "https://www.linkedin.com"
+      url= "https://www.linkedin.com/in/nancy-chelaru/"
       label = "LinkedIn"
+      
+     [[params.footer.social]]
+      icon = "fa-globe"
+      url= "https://www.intelligencerefinery.io"
+      label = "Intelligence Refinery"
 
-    [[params.footer.quicklinks]]
-      text = "Design: "
-      url= "https://www.html5up.net"
-      alt = "HTML5 UP"
+    #[[params.footer.quicklinks]]
+      #text = "Design: "
+      #url= "https://www.html5up.net"
+      #alt = "HTML5 UP"
