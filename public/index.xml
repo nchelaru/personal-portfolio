@@ -43,5 +43,15 @@ post Python packages that take data science project write-ups beyond Jupyter not
 ## Import libraries from googleapiclient.discovery import build ## Set credentials my_api_key = &amp;quot;API_key&amp;quot; my_cse_id = &amp;quot;CSE_ID&amp;quot; ## Define function def google_search(search_term, api_key, cse_id, **kwargs): service = build(&amp;quot;customsearch&amp;quot;, &amp;quot;v1&amp;quot;, developerKey=api_key) res = service.</description>
     </item>
     
+    <item>
+      <title>Data science podcast explorer</title>
+      <link>/blogs/data-science-podcast-explorer/</link>
+      <pubDate>Tue, 12 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/data-science-podcast-explorer/</guid>
+      <description>As a fun programming exercise, I recently created a Shiny app that allows users to explore and discover podcasts on data science, machine learning and big data. This post is a peek behind the curtains, showing how the database that powers the Shiny app is created and set up to update every 24 hours.
+1. Connect to PostgreSQL database First, we will set up the connection to my Heroku PostgreSQL database, which you can get for free (but limited to 10,000 rows).</description>
+    </item>
+    
   </channel>
 </rss>

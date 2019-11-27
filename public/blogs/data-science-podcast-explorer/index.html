@@ -1,0 +1,784 @@
+<!DOCTYPE HTML>
+<html>
+
+    <head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<meta name="description" content="Your description">
+	<meta name="author" content="Your name">
+	<meta name="generator" content="Hugo 0.57.2" />
+	<title>Data science podcast explorer &middot; The Perennial Beginner</title>
+	<!-- Stylesheets -->
+	
+	<link rel="stylesheet" href="/css/main.css"/>
+	
+	
+
+	
+
+	<!-- Custom Fonts -->
+	<link href="/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+	
+	<link rel="shortcut icon" type="image/x-icon" href="/favicon.png">
+	<link rel="icon" type="image/x-icon" href="/favicon.png">
+	
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+	<script src="js/ie/html5shiv.js"></script>
+	<script src="js/ie/html5shiv.jsrespond.min.js"></script>
+	<![endif]-->
+</head>
+
+    <body>
+
+    <!-- Wrapper -->
+        <div id="wrapper">
+
+            <!-- Header -->
+    <header id="header" class="alt">
+        <a href="/" class="logo"><strong>The Perennial Beginner</strong> <span> </span></a>
+        <nav>
+            <a href="#menu">Menu</a>
+        </nav>
+    </header>
+
+<!-- Menu -->
+    <nav id="menu">
+        <ul class="links">
+            
+                <li><a href="/">Home</a></li>
+            
+                <li><a href="/blogs">Blog</a></li>
+            
+                <li><a href="/post">Bits and Bytes</a></li>
+            
+                <li><a href="/resume.html">Resume</a></li>
+            
+
+        </ul>
+        <ul class="actions vertical">
+            
+            
+        </ul>
+    </nav>
+
+        <!-- Main -->
+            <div id="main" class="alt">
+
+                
+                    <section id="one">
+                        <div class="inner">
+                            <header class="major">
+                                <h1 data-toc-skip>Data science podcast explorer</h1>
+                            </header>
+                            
+                            
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<p>As a fun programming exercise, I recently created a Shiny app that allows users to explore and discover podcasts on data science, machine learning and big data. This post is a peek behind the curtains, showing how the database that powers the Shiny app is created and set up to update every 24 hours.</p>
+<div id="connect-to-postgresql-database" class="section level2">
+<h2>1. Connect to PostgreSQL database</h2>
+<p>First, we will set up the connection to my <a href="https://data.heroku.com/">Heroku PostgreSQL database</a>, which you can get for free (but limited to 10,000 rows). Sensitive credentials for connecting to the database should be stored somewhere safe, such as an .Renviron file (as I have done here). See <a href="https://db.rstudio.com/best-practices/managing-credentials/">here</a> for a list of options for keeping database credentials safe in R.</p>
+<pre class="r"><code>## Import library
+library(RPostgres)
+
+# Connect to my Heroku PostgreSQL database  
+con &lt;- dbConnect(Postgres(), 
+                 dbname = &quot;d2s6iokokikv66&quot;, 
+                 host = &quot;ec2-174-129-18-42.compute-1.amazonaws.com&quot;, 
+                 port = &#39;5432&#39;, 
+                 user = &quot;xttqqlhbdystbx&quot;,
+                 password = Sys.getenv(&#39;PASSWORD&#39;))</code></pre>
+<p><br></p>
+</div>
+<div id="query-itunes-search-api-for-podcast-listing" class="section level2">
+<h2>2. Query iTunes Search API for podcast listing</h2>
+<p>Now, we can a listing of podcasts relevant to data science, machine learning, artificial intelligence, and big data from the iTunes store, and do some quick clean-up.</p>
+<pre class="r"><code>## Import libraries
+library(httr)
+library(RCurl)
+library(XML)
+library(jsonlite)
+library(dplyr)
+library(anytime)
+
+## Get podcast titles and metadata
+url_list &lt;- c(&#39;https://itunes.apple.com/search?term=&quot;data+science&quot;&amp;media=podcast&amp;limit=200&amp;entity=podcast&amp;attribute=descriptionTerm&#39;, 
+             &#39;https://itunes.apple.com/search?term=&quot;machine+learning&quot;&amp;media=podcast&amp;limit=200&amp;entity=podcast&amp;attribute=descriptionTerm&#39;, 
+             &#39;https://itunes.apple.com/search?term=&quot;artificial+intelligence&quot;&amp;media=podcast&amp;limit=200&amp;entity=podcast&amp;attribute=descriptionTerm&#39;,
+             &#39;https://itunes.apple.com/search?term=&quot;big+data&quot;&amp;media=podcast&amp;limit=200&amp;entity=podcast&amp;attribute=descriptionTerm&#39;)
+
+df_list &lt;- list()
+
+for (i in seq_along(url_list)){
+  pod &lt;- GET(url_list[i])
+  pod_text &lt;- content(pod, &quot;text&quot;)
+  pod_json &lt;- fromJSON(pod_text, flatten = TRUE)
+  df_list[[i]] &lt;- as.data.frame(pod_json)
+}
+
+all_pod &lt;- bind_rows(df_list)
+
+## Deduplicate by podcast title
+col_list &lt;- c(&#39;results.collectionName&#39;, 
+              &#39;results.feedUrl&#39;, &#39;results.artworkUrl600&#39;, 
+              &#39;results.collectionViewUrl&#39;, &#39;results.artistName&#39;, 
+              &#39;results.genres&#39;, &#39;results.releaseDate&#39;, 
+              &#39;results.trackCount&#39;)
+
+uniques &lt;- all_pod[!duplicated(all_pod[&#39;results.collectionName&#39;]), ][, col_list]
+
+## Split up tags into comma separated strings
+uniques$results.genres &lt;- sapply(uniques$results.genres, function(x) paste(x, collapse=&quot;, &quot;)) 
+
+## Filter out podcasts that have not updated since 2018
+uniques$results.releaseDate &lt;- anydate(uniques$results.releaseDate)
+
+uniques &lt;- uniques[order(as.Date(uniques$results.releaseDate), decreasing=TRUE),]
+
+uniques &lt;- subset(uniques, format(as.Date(uniques$results.releaseDate),&quot;%Y&quot;) &gt; 2018)
+
+## Remove podcasts without feed URL
+uniques &lt;- subset(uniques, !is.na(uniques$results.feedUrl) )
+
+## Remove podcasts without &quot;Technology&quot; tag
+uniques &lt;- uniques[grep(&quot;Technology&quot;, uniques$results.genres),]
+
+## Rename columns
+colnames(uniques) &lt;- c(&#39;Title&#39;, &#39;FeedURL&#39;, &#39;ArtworkURL&#39;, &#39;URL&#39;, &#39;Creator&#39;, &#39;Tags&#39;, &#39;ReleaseDate&#39;, &#39;TrackCount&#39;)</code></pre>
+<p><br></p>
+</div>
+<div id="scrape-itunes-store-page-for-podcast-description-and-rating" class="section level2">
+<h2>3. Scrape iTunes store page for podcast description and rating</h2>
+<p>While we had parsed the RSS feed to get the podcast description before, I found that the iTunes store page is much more reliable, as some RSS feed URLs returned by the API were broken. This is also a fun little foray into web scraping using <code>rvest</code>:</p>
+<p>Let’s first get the descriptions:</p>
+<pre class="r"><code>## Import libraries
+library(xml2)
+library(rvest)
+library(stringr)
+library(splitstackshape)
+
+## Define function to scraping for podcast description
+get_desc &lt;- function(url){
+  tryCatch(
+    exp = {
+      webpage &lt;- read_html(url)
+      
+      des &lt;- webpage %&gt;% html_node(&quot;.product-hero-desc__section&quot;) %&gt;% html_text()
+
+      return(str_remove_all(des, &quot;\n&quot;))
+        
+    },
+    error = function(e) {
+            return(&#39;Unavailable&#39;)
+    },
+    finally = {
+    }
+  )}
+
+## Scrape descriptions
+uniques$Description &lt;- sapply(uniques$URL, function(x) get_desc(x))</code></pre>
+<p>Then, the ratings:</p>
+<pre class="r"><code>## Define function for scraping rating
+get_rating &lt;- function(url){
+  tryCatch(
+    exp = {
+      webpage &lt;- read_html(url)
+      
+      x &lt;- webpage %&gt;% html_node(&quot;.we-star-rating&quot;) %&gt;% html_text()
+
+      return(str_remove_all(x, &quot;\n&quot;))
+        
+    },
+    error = function(e) {
+            return(&#39;Unavailable&#39;)
+    },
+    finally = {
+    }
+  )
+  }
+
+## Scrape ratings  
+uniques$Rating &lt;- sapply(uniques$URL, function(x) get_rating(x))</code></pre>
+<p><br></p>
+</div>
+<div id="get-working-feed-urls" class="section level2">
+<h2>4. Get working feed URLs</h2>
+<p>To be able to show the most recent episodes of a podcast, we need the RSS feed URL. However, some of the podcast RSS feed URLs provided by the iTunes search API seem to be outdated, in that they redirect to a new URL. As <code>getURL()</code> does not follow the redirect, we have to get the redirect URL manually using <code>GET</code> and put that into a new column.</p>
+<pre class="r"><code>uniques$NewFeedURL &lt;- sapply(uniques$FeedURL, function(x) GET(x)$url)</code></pre>
+<p><br></p>
+</div>
+<div id="some-final-data-cleaning" class="section level2">
+<h2>5. Some final data cleaning</h2>
+<p>After getting all the data, we will quickly clean up the data. First, we will split up the <code>Rating</code> column, which contained entries in the format of “5.0, 18 Ratings”, by the comma into the new columns <code>AvgRating</code> and <code>NumRatings</code>. Then, now that we have the description for each podcast, we can filter out ones whose description does not contain “data”, “machine”, “artificial” or “intelligence”. While not perfect, this should get us the podcasts that are likely most relevant to data science.</p>
+<pre class="r"><code>## Import library
+library(data.table)
+library(splitstackshape)
+
+## Split up and rename ratings column
+uniques &lt;- cSplit(uniques, &quot;Rating&quot;, sep=&quot;,&quot;)
+
+setnames(uniques, old = c(&#39;Rating_1&#39;, &#39;Rating_2&#39;), new = c(&#39;AvgRating&#39;, &#39;NumRatings&#39;))
+
+## Filter out podcasts that do not contain certain strings in description
+uniques &lt;- filter(uniques, grepl(&#39;data|Data|machine|Machine|artificial|Artificial|intelligence|Intelligence&#39;, Description))</code></pre>
+<p>Let’s take a peek at the data:</p>
+<pre class="r"><code>## Import libraries
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+## Preview data
+kable(t(head(uniques)), escape=F, format=&#39;html&#39;, col.names = NULL) %&gt;%
+         kable_styling(full_width=T, bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;,  &quot;responsive&quot;)) %&gt;%
+         scroll_box(width = &quot;100%&quot;, height = &quot;100%&quot;)  </code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:100%; overflow-x: scroll; width:100%; ">
+<table class="table table-striped table-hover table-responsive" style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;">
+Title
+</td>
+<td style="text-align:left;">
+Brain Inspired
+</td>
+<td style="text-align:left;">
+AI Today Podcast: Artificial Intelligence Insights, Experts, and Opinion
+</td>
+<td style="text-align:left;">
+Modern CTO with Joel Beasley
+</td>
+<td style="text-align:left;">
+Robots on Typewriters
+</td>
+<td style="text-align:left;">
+Data Engineering Podcast
+</td>
+<td style="text-align:left;">
+Recruitment DNA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FeedURL
+</td>
+<td style="text-align:left;">
+<a href="https://braininspired.co/feed/podcast" class="uri">https://braininspired.co/feed/podcast</a>
+</td>
+<td style="text-align:left;">
+<a href="http://www.cognilytica.com/feed/podcast/" class="uri">http://www.cognilytica.com/feed/podcast/</a>
+</td>
+<td style="text-align:left;">
+<a href="http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss" class="uri">http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss</a>
+</td>
+<td style="text-align:left;">
+<a href="https://www.batcamp.org/feed/podcast/robots" class="uri">https://www.batcamp.org/feed/podcast/robots</a>
+</td>
+<td style="text-align:left;">
+<a href="https://www.dataengineeringpodcast.com/feed/mp3/" class="uri">https://www.dataengineeringpodcast.com/feed/mp3/</a>
+</td>
+<td style="text-align:left;">
+<a href="https://feeds.buzzsprout.com/193084.rss" class="uri">https://feeds.buzzsprout.com/193084.rss</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ArtworkURL
+</td>
+<td style="text-align:left;">
+<a href="https://is2-ssl.mzstatic.com/image/thumb/Podcasts113/v4/15/03/02/15030273-bd77-45e7-6b65-594ee17fc71a/mza_3485400707574714612.jpg/600x600bb.jpg" class="uri">https://is2-ssl.mzstatic.com/image/thumb/Podcasts113/v4/15/03/02/15030273-bd77-45e7-6b65-594ee17fc71a/mza_3485400707574714612.jpg/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/b5/c5/bf/b5c5bf10-df1d-9524-6997-a1939e9118f4/mza_2696853573982509476.png/600x600bb.jpg" class="uri">https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/b5/c5/bf/b5c5bf10-df1d-9524-6997-a1939e9118f4/mza_2696853573982509476.png/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is1-ssl.mzstatic.com/image/thumb/Podcasts128/v4/e9/c4/c3/e9c4c377-a90d-2f2a-eb22-2f928eec6c2e/mza_5746928462337279057.jpg/600x600bb.jpg" class="uri">https://is1-ssl.mzstatic.com/image/thumb/Podcasts128/v4/e9/c4/c3/e9c4c377-a90d-2f2a-eb22-2f928eec6c2e/mza_5746928462337279057.jpg/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is2-ssl.mzstatic.com/image/thumb/Podcasts123/v4/34/cf/87/34cf87dd-6478-cf71-4076-2547d780a0c5/mza_5754773606817807881.jpg/600x600bb.jpg" class="uri">https://is2-ssl.mzstatic.com/image/thumb/Podcasts123/v4/34/cf/87/34cf87dd-6478-cf71-4076-2547d780a0c5/mza_5754773606817807881.jpg/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is5-ssl.mzstatic.com/image/thumb/Podcasts123/v4/be/3e/2c/be3e2c0e-9011-2687-af98-7dee5603f006/mza_7629395402077320289.jpeg/600x600bb.jpg" class="uri">https://is5-ssl.mzstatic.com/image/thumb/Podcasts123/v4/be/3e/2c/be3e2c0e-9011-2687-af98-7dee5603f006/mza_7629395402077320289.jpeg/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/d0/48/7b/d0487b52-7bad-67fd-33b6-a8442b924eca/mza_4849116255025840178.jpg/600x600bb.jpg" class="uri">https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/d0/48/7b/d0487b52-7bad-67fd-33b6-a8442b924eca/mza_4849116255025840178.jpg/600x600bb.jpg</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+URL
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/brain-inspired/id1428880766?uo=4" class="uri">https://podcasts.apple.com/us/podcast/brain-inspired/id1428880766?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/ai-today-podcast-artificial-intelligence-insights-experts/id1279927057?uo=4" class="uri">https://podcasts.apple.com/us/podcast/ai-today-podcast-artificial-intelligence-insights-experts/id1279927057?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/modern-cto-with-joel-beasley/id1325942361?uo=4" class="uri">https://podcasts.apple.com/us/podcast/modern-cto-with-joel-beasley/id1325942361?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/robots-on-typewriters/id1385887917?uo=4" class="uri">https://podcasts.apple.com/us/podcast/robots-on-typewriters/id1385887917?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/data-engineering-podcast/id1193040557?uo=4" class="uri">https://podcasts.apple.com/us/podcast/data-engineering-podcast/id1193040557?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/recruitment-dna/id1414499686?uo=4" class="uri">https://podcasts.apple.com/us/podcast/recruitment-dna/id1414499686?uo=4</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Creator
+</td>
+<td style="text-align:left;">
+Paul Middlebrooks
+</td>
+<td style="text-align:left;">
+Cognilytica
+</td>
+<td style="text-align:left;">
+Modern CTO with Joel Beasley
+</td>
+<td style="text-align:left;">
+Bat Camp
+</td>
+<td style="text-align:left;">
+Tobias Macey
+</td>
+<td style="text-align:left;">
+Max Notis
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tags
+</td>
+<td style="text-align:left;">
+Natural Sciences, Podcasts, Science, Technology
+</td>
+<td style="text-align:left;">
+Technology, Podcasts
+</td>
+<td style="text-align:left;">
+Technology, Podcasts
+</td>
+<td style="text-align:left;">
+Comedy, Podcasts, Technology
+</td>
+<td style="text-align:left;">
+Technology, Podcasts
+</td>
+<td style="text-align:left;">
+Technology, Podcasts, Business
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TrackCount
+</td>
+<td style="text-align:left;">
+50
+</td>
+<td style="text-align:left;">
+118
+</td>
+<td style="text-align:left;">
+140
+</td>
+<td style="text-align:left;">
+78
+</td>
+<td style="text-align:left;">
+108
+</td>
+<td style="text-align:left;">
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NewFeedURL
+</td>
+<td style="text-align:left;">
+<a href="https://braininspired.co/feed/podcast" class="uri">https://braininspired.co/feed/podcast</a>
+</td>
+<td style="text-align:left;">
+<a href="https://www.cognilytica.com/feed/podcast/" class="uri">https://www.cognilytica.com/feed/podcast/</a>
+</td>
+<td style="text-align:left;">
+<a href="http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss" class="uri">http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss</a>
+</td>
+<td style="text-align:left;">
+<a href="https://www.batcamp.org/feed/podcast/robots" class="uri">https://www.batcamp.org/feed/podcast/robots</a>
+</td>
+<td style="text-align:left;">
+<a href="https://www.dataengineeringpodcast.com/feed/mp3/" class="uri">https://www.dataengineeringpodcast.com/feed/mp3/</a>
+</td>
+<td style="text-align:left;">
+<a href="https://feeds.buzzsprout.com/193084.rss" class="uri">https://feeds.buzzsprout.com/193084.rss</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ReleaseDate
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+<td style="text-align:left;">
+2019-11-26
+</td>
+<td style="text-align:left;">
+2019-11-26
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Description
+</td>
+<td style="text-align:left;">
+Neuroscience and artificial intelligence work better together. I interview experts about their work at the interface of neuroscience, artificial intelligence, cognitive science, philosophy, psychology, and more: the symbiosis of these overlapping fields, how they inform each other, where they differ, what the past brought us, and what the future brings. Topics include computational neuroscience, supervised machine learning, unsupervised learning, reinforcement learning, deep learning, convolutional and recurrent neural networks, decision-making science, AI agents, backpropagation, credit assignment, neuroengineering, neuromorphics, emergence, philosophy of mind, consciousness, general AI, spiking neural networks, data science, and a lot more. The show is not produced for a general audience. Instead, it aims to educate, challenge, inspire, and hopefully entertain those interested in learning more about neuroscience and AI.
+</td>
+<td style="text-align:left;">
+Real-World, Industry and Adoption focused Market Research and Intelligence on AI.
+</td>
+<td style="text-align:left;">
+ModernCTO is the #1 place where CTO’s hang out. We live to bring CTO’s value. Listen in on our fun, intelligent and engaging podcast.<br><br>We hang out with interesting and popular CTO’s in Aerospace, Artificial Intelligence, Robotics + Many more industries.<br><br>All of this, right here, right now, on the Modern CTO Podcast.
+</td>
+<td style="text-align:left;">
+Justin and Allison showcase some of the best and most interesting comedy written by artificial intelligence (often with the help of humans) and also attempt to write some themselves.
+</td>
+<td style="text-align:left;">
+Weekly deep dives on data management with the engineers and entrepreneurs who are shaping the industry
+</td>
+<td style="text-align:left;">
+Technology startup Wade &amp; Wendy is proud to present its weekly podcast: Recruitment DNA Chat. Every Thursday, join host Max Notis as he speaks with thought leaders to discuss all things HR Tech in fun and digestable segments. During the interviews, Max’s guests offer insights on the future of artificial intelligence in human resources.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AvgRating
+</td>
+<td style="text-align:left;">
+4.9
+</td>
+<td style="text-align:left;">
+4.0
+</td>
+<td style="text-align:left;">
+4.9
+</td>
+<td style="text-align:left;">
+5.0
+</td>
+<td style="text-align:left;">
+4.8
+</td>
+<td style="text-align:left;">
+5.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NumRatings
+</td>
+<td style="text-align:left;">
+43
+</td>
+<td style="text-align:left;">
+30
+</td>
+<td style="text-align:left;">
+30
+</td>
+<td style="text-align:left;">
+8
+</td>
+<td style="text-align:left;">
+38
+</td>
+<td style="text-align:left;">
+2
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><br></p>
+</div>
+<div id="write-data-to-postgresql-database" class="section level2">
+<h2>6. Write data to PostgreSQL database</h2>
+<p>Finally, we can put store the dataframe in our PostgreSQL database. <code>RPostgres</code> provides very intuitive implementations for writing data to the database:</p>
+<pre class="r"><code>dbWriteTable(con, &quot;podcasts&quot;, uniques, overwrite=TRUE)</code></pre>
+<p>Check columns in table:</p>
+<pre class="r"><code>dbListFields(con, &quot;podcasts&quot;)</code></pre>
+<pre><code>##  [1] &quot;Title&quot;       &quot;FeedURL&quot;     &quot;ArtworkURL&quot;  &quot;URL&quot;         &quot;Creator&quot;    
+##  [6] &quot;Tags&quot;        &quot;TrackCount&quot;  &quot;NewFeedURL&quot;  &quot;ReleaseDate&quot; &quot;Description&quot;
+## [11] &quot;AvgRating&quot;   &quot;NumRatings&quot;</code></pre>
+<p>All looks like they are in order!</p>
+<p><br></p>
+</div>
+<div id="pull-data-from-postgresql-database" class="section level2">
+<h2>7. Pull data from PostgreSQL database</h2>
+<p>We also want to test getting data out of the database, as it will be powering the Shiny app. There are two ways to do this:</p>
+<p>First, if we need to use the SQL query results in a R script, we can go for the <code>RPostgres</code> implementation:</p>
+<pre class="r"><code>df &lt;- dbGetQuery(con, &quot;SELECT * FROM podcasts&quot;)
+
+kable(t(head(df, 3)), escape=F, format=&#39;html&#39;, col.names = NULL) %&gt;%
+         kable_styling(full_width=T, bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;,  &quot;responsive&quot;)) %&gt;%
+         scroll_box(width = &quot;100%&quot;, height = &quot;100%&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:100%; overflow-x: scroll; width:100%; ">
+<table class="table table-striped table-hover table-responsive" style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;">
+Title
+</td>
+<td style="text-align:left;">
+Brain Inspired
+</td>
+<td style="text-align:left;">
+AI Today Podcast: Artificial Intelligence Insights, Experts, and Opinion
+</td>
+<td style="text-align:left;">
+Modern CTO with Joel Beasley
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FeedURL
+</td>
+<td style="text-align:left;">
+<a href="https://braininspired.co/feed/podcast" class="uri">https://braininspired.co/feed/podcast</a>
+</td>
+<td style="text-align:left;">
+<a href="http://www.cognilytica.com/feed/podcast/" class="uri">http://www.cognilytica.com/feed/podcast/</a>
+</td>
+<td style="text-align:left;">
+<a href="http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss" class="uri">http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ArtworkURL
+</td>
+<td style="text-align:left;">
+<a href="https://is2-ssl.mzstatic.com/image/thumb/Podcasts113/v4/15/03/02/15030273-bd77-45e7-6b65-594ee17fc71a/mza_3485400707574714612.jpg/600x600bb.jpg" class="uri">https://is2-ssl.mzstatic.com/image/thumb/Podcasts113/v4/15/03/02/15030273-bd77-45e7-6b65-594ee17fc71a/mza_3485400707574714612.jpg/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/b5/c5/bf/b5c5bf10-df1d-9524-6997-a1939e9118f4/mza_2696853573982509476.png/600x600bb.jpg" class="uri">https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/b5/c5/bf/b5c5bf10-df1d-9524-6997-a1939e9118f4/mza_2696853573982509476.png/600x600bb.jpg</a>
+</td>
+<td style="text-align:left;">
+<a href="https://is1-ssl.mzstatic.com/image/thumb/Podcasts128/v4/e9/c4/c3/e9c4c377-a90d-2f2a-eb22-2f928eec6c2e/mza_5746928462337279057.jpg/600x600bb.jpg" class="uri">https://is1-ssl.mzstatic.com/image/thumb/Podcasts128/v4/e9/c4/c3/e9c4c377-a90d-2f2a-eb22-2f928eec6c2e/mza_5746928462337279057.jpg/600x600bb.jpg</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+URL
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/brain-inspired/id1428880766?uo=4" class="uri">https://podcasts.apple.com/us/podcast/brain-inspired/id1428880766?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/ai-today-podcast-artificial-intelligence-insights-experts/id1279927057?uo=4" class="uri">https://podcasts.apple.com/us/podcast/ai-today-podcast-artificial-intelligence-insights-experts/id1279927057?uo=4</a>
+</td>
+<td style="text-align:left;">
+<a href="https://podcasts.apple.com/us/podcast/modern-cto-with-joel-beasley/id1325942361?uo=4" class="uri">https://podcasts.apple.com/us/podcast/modern-cto-with-joel-beasley/id1325942361?uo=4</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Creator
+</td>
+<td style="text-align:left;">
+Paul Middlebrooks
+</td>
+<td style="text-align:left;">
+Cognilytica
+</td>
+<td style="text-align:left;">
+Modern CTO with Joel Beasley
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tags
+</td>
+<td style="text-align:left;">
+Natural Sciences, Podcasts, Science, Technology
+</td>
+<td style="text-align:left;">
+Technology, Podcasts
+</td>
+<td style="text-align:left;">
+Technology, Podcasts
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TrackCount
+</td>
+<td style="text-align:left;">
+50
+</td>
+<td style="text-align:left;">
+118
+</td>
+<td style="text-align:left;">
+140
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NewFeedURL
+</td>
+<td style="text-align:left;">
+<a href="https://braininspired.co/feed/podcast" class="uri">https://braininspired.co/feed/podcast</a>
+</td>
+<td style="text-align:left;">
+<a href="https://www.cognilytica.com/feed/podcast/" class="uri">https://www.cognilytica.com/feed/podcast/</a>
+</td>
+<td style="text-align:left;">
+<a href="http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss" class="uri">http://feeds.soundcloud.com/users/soundcloud:users:349418264/sounds.rss</a>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ReleaseDate
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+<td style="text-align:left;">
+2019-11-27
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Description
+</td>
+<td style="text-align:left;">
+Neuroscience and artificial intelligence work better together. I interview experts about their work at the interface of neuroscience, artificial intelligence, cognitive science, philosophy, psychology, and more: the symbiosis of these overlapping fields, how they inform each other, where they differ, what the past brought us, and what the future brings. Topics include computational neuroscience, supervised machine learning, unsupervised learning, reinforcement learning, deep learning, convolutional and recurrent neural networks, decision-making science, AI agents, backpropagation, credit assignment, neuroengineering, neuromorphics, emergence, philosophy of mind, consciousness, general AI, spiking neural networks, data science, and a lot more. The show is not produced for a general audience. Instead, it aims to educate, challenge, inspire, and hopefully entertain those interested in learning more about neuroscience and AI.
+</td>
+<td style="text-align:left;">
+Real-World, Industry and Adoption focused Market Research and Intelligence on AI.
+</td>
+<td style="text-align:left;">
+ModernCTO is the #1 place where CTO’s hang out. We live to bring CTO’s value. Listen in on our fun, intelligent and engaging podcast.<br><br>We hang out with interesting and popular CTO’s in Aerospace, Artificial Intelligence, Robotics + Many more industries.<br><br>All of this, right here, right now, on the Modern CTO Podcast.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AvgRating
+</td>
+<td style="text-align:left;">
+4.9
+</td>
+<td style="text-align:left;">
+4.0
+</td>
+<td style="text-align:left;">
+4.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NumRatings
+</td>
+<td style="text-align:left;">
+43
+</td>
+<td style="text-align:left;">
+30
+</td>
+<td style="text-align:left;">
+30
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><br></p>
+<p>Or, you can opt for the SQL code chunk if working in a R notebook or Rmarkdown document, in which you can write native SQL queries. To store the output in a R variable that then can be used in a R code chunk, just specify the variable name in the header, for example:</p>
+<pre class="plain"><code>```{sql, connection=con, output.var = &quot;df&quot;}
+SELECT * FROM podcasts 
+```
+</code></pre>
+<p><br></p>
+</div>
+<div id="create-a-continuously-updating-database" class="section level2">
+<h2>8. Create a continuously updating database</h2>
+<p>Finally, having putting all of this into an R script, I am now using a free-tier Heroku Scheduler to run it every 24 hours to ensure that all the information in the database is up-to-date. The set up for a R script is a bit more complicated, but I have followed this <a href="https://www.r-bloggers.com/running-an-r-script-on-heroku/">nice tutorial</a> on <b>Roel’s R-tefacts</b> without issue each time.</p>
+<p>Phew, that was a long post! Now that we are done with the set up, check ou the working product at <a href="https://nancy-chelaru-centea.shinyapps.io/ds_podcast_db/" class="uri">https://nancy-chelaru-centea.shinyapps.io/ds_podcast_db/</a>! :)</p>
+</div>
+
+                        </div>
+                    </section>
+            <!-- Disqus Inject -->
+                
+            </div>
+            
+        <!-- Footer -->
+            
+                <!-- Footer -->
+    <footer id="footer">
+        <div class="inner">
+            <ul class="icons">
+                
+                    <li><a href="https://www.twitter.com/n_chelaru" class="icon alt fa-twitter" target="_blank"><span class="label">Twitter</span></a></li>
+                
+                    <li><a href="https://www.github.com/nchelaru" class="icon alt fa-github" target="_blank"><span class="label">GitHub</span></a></li>
+                
+                    <li><a href="https://www.linkedin.com/in/nancy-chelaru/" class="icon alt fa-linkedin" target="_blank"><span class="label">LinkedIn</span></a></li>
+                
+                    <li><a href="https://www.intelligencerefinery.io" class="icon alt fa-globe" target="_blank"><span class="label">Intelligence Refinery</span></a></li>
+                
+            </ul>
+            <ul class="copyright">
+                <li>&copy; Nancy Chelaru</li>
+                
+            </ul>
+        </div>
+    </footer>
+
+            
+        </div>
+
+    <!-- Scripts -->
+        <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/jquery.scrolly.min.js"></script>
+    <script src="/js/jquery.scrollex.min.js"></script>
+    <script src="/js/skel.min.js"></script>
+    <script src="/js/util.js"></script>
+
+    
+
+    <!-- Main JS -->
+    <script src="/js/main.js"></script>
+
+    
+
+    
+
+    </body>
+</html>

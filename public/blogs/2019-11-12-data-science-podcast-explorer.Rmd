@@ -1,0 +1,269 @@
+---
+title: Data science podcast explorer
+author: Nancy Chelaru
+date: '2019-11-12'
+slug: data-science-podcast-explorer
+categories: []
+tags: []
+description: 'A detailed workflow for creating a live database of data science podcasts'
+image: ds_pod.png
+keywords: ''
+draft: no
+---
+
+
+As a fun programming exercise, I recently created a Shiny app that allows users to explore and discover podcasts on data science, machine learning and big data. This post is a peek behind the curtains, showing how the database that powers the Shiny app is created and set up to update every 24 hours.
+
+## 1. Connect to PostgreSQL database
+
+First, we will set up the connection to my [Heroku PostgreSQL database](https://data.heroku.com/), which you can get for free (but limited to 10,000 rows). Sensitive credentials for connecting to the database should be stored somewhere safe, such as an .Renviron file (as I have done here). See [here](https://db.rstudio.com/best-practices/managing-credentials/) for a list of options for keeping database credentials safe in R.
+
+```{r, eval=F, echo=T, warning=FALSE, paged.print=FALSE}
+## Import library
+library(RPostgres)
+
+# Connect to my Heroku PostgreSQL database  
+con <- dbConnect(Postgres(), 
+                 dbname = "d2s6iokokikv66", 
+                 host = "ec2-174-129-18-42.compute-1.amazonaws.com", 
+                 port = '5432', 
+                 user = "xttqqlhbdystbx",
+                 password = Sys.getenv('PASSWORD'))
+```
+
+```{r, echo=F, eval=T}
+## Import library
+library(RPostgres)
+
+con <- dbConnect(Postgres(), 
+                 dbname = "d2sjdih8tegcuc", 
+                 host = "ec2-184-72-238-22.compute-1.amazonaws.com", 
+                 port = '5432', 
+                 user = "xkktypszvisogc",
+                 password = "35b7eb67cab6ea1750e5877d61c3415851d6f1ca9c5782ec0b6bf91ede8acbea",
+                 sslmode = 'require')
+```
+
+<br>
+
+## 2. Query iTunes Search API for podcast listing
+
+Now, we can a listing of podcasts relevant to data science, machine learning, artificial intelligence, and big data from the iTunes store, and do some quick clean-up. 
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE, eval=F}
+## Import libraries
+library(httr)
+library(RCurl)
+library(XML)
+library(jsonlite)
+library(dplyr)
+library(anytime)
+
+## Get podcast titles and metadata
+url_list <- c('https://itunes.apple.com/search?term="data+science"&media=podcast&limit=200&entity=podcast&attribute=descriptionTerm', 
+             'https://itunes.apple.com/search?term="machine+learning"&media=podcast&limit=200&entity=podcast&attribute=descriptionTerm', 
+             'https://itunes.apple.com/search?term="artificial+intelligence"&media=podcast&limit=200&entity=podcast&attribute=descriptionTerm',
+             'https://itunes.apple.com/search?term="big+data"&media=podcast&limit=200&entity=podcast&attribute=descriptionTerm')
+
+df_list <- list()
+
+for (i in seq_along(url_list)){
+  pod <- GET(url_list[i])
+  pod_text <- content(pod, "text")
+  pod_json <- fromJSON(pod_text, flatten = TRUE)
+  df_list[[i]] <- as.data.frame(pod_json)
+}
+
+all_pod <- bind_rows(df_list)
+
+## Deduplicate by podcast title
+col_list <- c('results.collectionName', 
+              'results.feedUrl', 'results.artworkUrl600', 
+              'results.collectionViewUrl', 'results.artistName', 
+              'results.genres', 'results.releaseDate', 
+              'results.trackCount')
+
+uniques <- all_pod[!duplicated(all_pod['results.collectionName']), ][, col_list]
+
+## Split up tags into comma separated strings
+uniques$results.genres <- sapply(uniques$results.genres, function(x) paste(x, collapse=", ")) 
+
+## Filter out podcasts that have not updated since 2018
+uniques$results.releaseDate <- anydate(uniques$results.releaseDate)
+
+uniques <- uniques[order(as.Date(uniques$results.releaseDate), decreasing=TRUE),]
+
+uniques <- subset(uniques, format(as.Date(uniques$results.releaseDate),"%Y") > 2018)
+
+## Remove podcasts without feed URL
+uniques <- subset(uniques, !is.na(uniques$results.feedUrl) )
+
+## Remove podcasts without "Technology" tag
+uniques <- uniques[grep("Technology", uniques$results.genres),]
+
+## Rename columns
+colnames(uniques) <- c('Title', 'FeedURL', 'ArtworkURL', 'URL', 'Creator', 'Tags', 'ReleaseDate', 'TrackCount')
+```
+
+<br>
+
+## 3. Scrape iTunes store page for podcast description and rating
+
+While we had parsed the RSS feed to get the podcast description before, I found that the iTunes store page is much more reliable, as some RSS feed URLs returned by the API were broken. This is also a fun little foray into web scraping using `rvest`:
+
+Let's first get the descriptions:
+
+```{r, eval=F, warning=FALSE, paged.print=FALSE}
+## Import libraries
+library(xml2)
+library(rvest)
+library(stringr)
+library(splitstackshape)
+
+## Define function to scraping for podcast description
+get_desc <- function(url){
+  tryCatch(
+    exp = {
+      webpage <- read_html(url)
+      
+      des <- webpage %>% html_node(".product-hero-desc__section") %>% html_text()
+
+      return(str_remove_all(des, "\n"))
+        
+    },
+    error = function(e) {
+            return('Unavailable')
+    },
+    finally = {
+    }
+  )}
+
+## Scrape descriptions
+uniques$Description <- sapply(uniques$URL, function(x) get_desc(x))
+```
+
+Then, the ratings:
+
+```{r, eval=F, warning=FALSE, paged.print=FALSE}
+## Define function for scraping rating
+get_rating <- function(url){
+  tryCatch(
+    exp = {
+      webpage <- read_html(url)
+      
+      x <- webpage %>% html_node(".we-star-rating") %>% html_text()
+
+      return(str_remove_all(x, "\n"))
+        
+    },
+    error = function(e) {
+            return('Unavailable')
+    },
+    finally = {
+    }
+  )
+  }
+
+## Scrape ratings  
+uniques$Rating <- sapply(uniques$URL, function(x) get_rating(x))
+```
+
+<br>
+
+## 4. Get working feed URLs
+
+To be able to show the most recent episodes of a podcast, we need the RSS feed URL. However, some of the podcast RSS feed URLs provided by the iTunes search API seem to be outdated, in that they redirect to a new URL. As `getURL()` does not follow the redirect, we have to get the redirect URL manually using `GET` and put that into a new column.
+
+```{r, eval=F, echo=T, message=FALSE, warning=FALSE}
+uniques$NewFeedURL <- sapply(uniques$FeedURL, function(x) GET(x)$url)
+```
+
+<br>
+
+## 5. Some final data cleaning
+
+After getting all the data, we will quickly clean up the data. First, we will split up the `Rating` column, which contained entries in the format of "5.0, 18 Ratings", by the comma into the new columns `AvgRating` and `NumRatings`. Then, now that we have the description for each podcast, we can filter out ones whose description does not contain "data", "machine", "artificial" or "intelligence". While not perfect, this should get us the podcasts that are likely most relevant to data science.
+
+```{r eval=F, message=FALSE, warning=FALSE}
+## Import library
+library(data.table)
+library(splitstackshape)
+
+## Split up and rename ratings column
+uniques <- cSplit(uniques, "Rating", sep=",")
+
+setnames(uniques, old = c('Rating_1', 'Rating_2'), new = c('AvgRating', 'NumRatings'))
+
+## Filter out podcasts that do not contain certain strings in description
+uniques <- filter(uniques, grepl('data|Data|machine|Machine|artificial|Artificial|intelligence|Intelligence', Description))
+```
+
+Let's take a peek at the data:
+
+```{r, eval=T, echo=F}
+uniques <- dbGetQuery(con, "SELECT * FROM podcasts")
+```
+
+```{r message=FALSE, warning=FALSE}
+## Import libraries
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+## Preview data
+kable(t(head(uniques)), escape=F, format='html', col.names = NULL) %>%
+         kable_styling(full_width=T, bootstrap_options = c("striped", "hover",  "responsive")) %>%
+         scroll_box(width = "100%", height = "100%")  
+```
+
+<br>
+
+## 6. Write data to PostgreSQL database
+
+Finally, we can put store the dataframe in our PostgreSQL database. `RPostgres` provides very intuitive implementations for writing data to the database:
+
+```{r, warning=FALSE, paged.print=FALSE}
+dbWriteTable(con, "podcasts", uniques, overwrite=TRUE)
+```
+
+Check columns in table:
+
+```{r, warning=FALSE, paged.print=FALSE}
+dbListFields(con, "podcasts")
+```
+
+
+All looks like they are in order!
+
+<br>
+
+## 7. Pull data from PostgreSQL database
+
+We also want to test getting data out of the database, as it will be powering the Shiny app. There are two ways to do this:
+
+First, if we need to use the SQL query results in a R script, we can go for the `RPostgres` implementation:
+
+```{r}
+df <- dbGetQuery(con, "SELECT * FROM podcasts")
+
+kable(t(head(df, 3)), escape=F, format='html', col.names = NULL) %>%
+         kable_styling(full_width=T, bootstrap_options = c("striped", "hover",  "responsive")) %>%
+         scroll_box(width = "100%", height = "100%")
+```
+
+<br>
+
+Or, you can opt for the SQL code chunk if working in a R notebook or Rmarkdown document, in which you can write native SQL queries. To store the output in a R variable that then can be used in a R code chunk, just specify the variable name in the header, for example: 
+
+<pre class="plain"><code>```{sql, connection=con, output.var = &quot;df&quot;}
+SELECT * FROM podcasts 
+```
+</code></pre>
+
+<br> 
+
+## 8. Create a continuously updating database
+
+Finally, having putting all of this into an R script, I am now using a free-tier Heroku Scheduler to run it every 24 hours to ensure that all the information in the database is up-to-date. The set up for a R script is a bit more complicated, but I have followed this [nice tutorial](https://www.r-bloggers.com/running-an-r-script-on-heroku/) on <b>Roel's R-tefacts</b> without issue each time.
+
+Phew, that was a long post! Now that we are done with the set up, check ou the working product at https://nancy-chelaru-centea.shinyapps.io/ds_podcast_db/! :)
