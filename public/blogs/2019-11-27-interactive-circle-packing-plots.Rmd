@@ -1,0 +1,132 @@
+---
+title: Interactive circle packing plots
+author: 'Nancy Chelaru'
+date: '2019-11-27'
+slug: interactive-circle-packing-plots
+categories: []
+tags: []
+description: ''
+image: circle_packing.png
+keywords: ''
+draft: no
+---
+
+<br>
+
+I was looking for something suited for visualizing hierarchical categorical data that goes beyond the regular bar graphs. This D3 zoomable circle packing visualization, done using the `circlepackeR` package, uses a series of nested circles that you can click on and zoom in/out of. To learn more, please see the [official documentation](http://jeromefroe.github.io/circlepackeR/) by the package author.
+
+As usual, we will use the IBM Telco customer churn dataset. Since I'm quite a bit more comfortable with data wrangling in Python, I will first get the number of customers in each level of every categorical variable using `pandas`:
+
+```{r, echo=F, eval=T}
+library(reticulate)
+
+use_python('/Users/nancy/miniconda3/bin/python')
+```
+
+```{python}
+## Import data
+import pandas as pd
+
+df = pd.read_csv("https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv")
+
+## Get categorical column names
+cat_list = [] 
+
+for col in df.columns:
+  if df[col].dtype == object:
+    cat_list.append(col)
+    
+## Get all possible levels of every categorical variable and number of data points in each level
+cat_levels = {}
+
+for col in cat_list:
+  levels = df[col].value_counts().to_dict()
+  cat_levels[col] = levels
+  
+## Convert nested dictionary to dataframe
+nestdict = pd.DataFrame(cat_levels).stack().reset_index()
+
+nestdict.columns = ['Level', 'Category', 'Population'] 
+```
+
+We can take a look at the first few rows to get an idea:
+
+```{r eval=T, echo=F}
+library(knitr)
+library(kableExtra)
+
+nestdict <- py$nestdict
+
+kable(head(nestdict)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+Now we will take the prepared data and move to R for making the plot:
+
+
+```{r fig.height=7, fig.width=7, eval=F, echo=T, message=FALSE, warning=FALSE, fig.align='center'}
+## Import libraries
+library(tidyverse)
+library(circlepackeR)  
+library(hrbrthemes)
+library(htmlwidgets)
+library(data.tree)
+
+## Import data
+nestdict <- py$nestdict
+
+## Prepare data format
+nestdict$pathString <- paste("world", 
+                             nestdict$Category, 
+                             nestdict$Level, 
+                             sep = "/")
+
+population <- as.Node(nestdict)
+ 
+## Make the plot
+circlepackeR(population, 
+             size = "Population", 
+             color_min = "hsl(56,80%,80%)", 
+             color_max = "hsl(341,30%,40%)")
+```
+
+
+<center>
+
+```{r fig.height=7, fig.width=7, eval=T, echo=F, message=FALSE, warning=FALSE, fig.align='center'}
+## Import libraries
+library(tidyverse)
+library(circlepackeR)  
+library(hrbrthemes)
+library(htmlwidgets)
+library(data.tree)
+
+## Import data
+nestdict <- py$nestdict
+
+## Prepare data format
+nestdict$pathString <- paste("world", 
+                             nestdict$Category, 
+                             nestdict$Level, 
+                             sep = "/")
+
+population <- as.Node(nestdict)
+ 
+## Make the plot
+circlepackeR(population, 
+             size = "Population", 
+             color_min = "hsl(56,80%,80%)", 
+             color_max = "hsl(341,30%,40%)")
+```
+
+</center>
+
+<br>
+
+Try clicking on the circles!
+
+At a glance, the sizes of circles in the second level give a quick overview of relative distributions of the levels of each categorical variable. Click on the circles to zoom in and out!
+
+When the occasion is right, this could be a really fun way to add some pizzazz to your visualizations. :)
+
+

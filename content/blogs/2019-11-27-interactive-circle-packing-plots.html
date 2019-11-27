@@ -1,0 +1,162 @@
+---
+title: Interactive circle packing plots
+author: 'Nancy Chelaru'
+date: '2019-11-27'
+slug: interactive-circle-packing-plots
+categories: []
+tags: []
+description: ''
+image: circle_packing.png
+keywords: ''
+draft: no
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/d3/./d3.min.js"></script>
+<link href="/rmarkdown-libs/circlepackeR/./style.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/circlepackeR-binding/circlepackeR.js"></script>
+
+
+<p><br></p>
+<p>I was looking for something suited for visualizing hierarchical categorical data that goes beyond the regular bar graphs. This D3 zoomable circle packing visualization, done using the <code>circlepackeR</code> package, uses a series of nested circles that you can click on and zoom in/out of. To learn more, please see the <a href="http://jeromefroe.github.io/circlepackeR/">official documentation</a> by the package author.</p>
+<p>As usual, we will use the IBM Telco customer churn dataset. Since I’m quite a bit more comfortable with data wrangling in Python, I will first get the number of customers in each level of every categorical variable using <code>pandas</code>:</p>
+<pre class="python"><code>## Import data
+import pandas as pd
+
+df = pd.read_csv(&quot;https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv&quot;)
+
+## Get categorical column names
+cat_list = [] 
+
+for col in df.columns:
+  if df[col].dtype == object:
+    cat_list.append(col)
+    
+## Get all possible levels of every categorical variable and number of data points in each level
+cat_levels = {}
+
+for col in cat_list:
+  levels = df[col].value_counts().to_dict()
+  cat_levels[col] = levels
+  
+## Convert nested dictionary to dataframe
+nestdict = pd.DataFrame(cat_levels).stack().reset_index()
+
+nestdict.columns = [&#39;Level&#39;, &#39;Category&#39;, &#39;Population&#39;] </code></pre>
+<p>We can take a look at the first few rows to get an idea:</p>
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Level
+</th>
+<th style="text-align:left;">
+Category
+</th>
+<th style="text-align:right;">
+Population
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Male
+</td>
+<td style="text-align:left;">
+Gender
+</td>
+<td style="text-align:right;">
+3549
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Female
+</td>
+<td style="text-align:left;">
+Gender
+</td>
+<td style="text-align:right;">
+3483
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+No SeniorCitizen
+</td>
+<td style="text-align:left;">
+SeniorCitizen
+</td>
+<td style="text-align:right;">
+5890
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SeniorCitizen
+</td>
+<td style="text-align:left;">
+SeniorCitizen
+</td>
+<td style="text-align:right;">
+1142
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+No Partner
+</td>
+<td style="text-align:left;">
+Partner
+</td>
+<td style="text-align:right;">
+3639
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Partner
+</td>
+<td style="text-align:left;">
+Partner
+</td>
+<td style="text-align:right;">
+3393
+</td>
+</tr>
+</tbody>
+</table>
+<p>Now we will take the prepared data and move to R for making the plot:</p>
+<pre class="r"><code>## Import libraries
+library(tidyverse)
+library(circlepackeR)  
+library(hrbrthemes)
+library(htmlwidgets)
+library(data.tree)
+
+## Import data
+nestdict &lt;- py$nestdict
+
+## Prepare data format
+nestdict$pathString &lt;- paste(&quot;world&quot;, 
+                             nestdict$Category, 
+                             nestdict$Level, 
+                             sep = &quot;/&quot;)
+
+population &lt;- as.Node(nestdict)
+ 
+## Make the plot
+circlepackeR(population, 
+             size = &quot;Population&quot;, 
+             color_min = &quot;hsl(56,80%,80%)&quot;, 
+             color_max = &quot;hsl(341,30%,40%)&quot;)</code></pre>
+<center>
+<div id="htmlwidget-1" style="width:672px;height:672px;" class="circlepackeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"data":{"name":"world","children":[{"name":"Gender","children":[{"name":"Male","Category":"Gender","Level":"Male","Population":3549},{"name":"Female","Category":"Gender","Level":"Female","Population":3483}]},{"name":"SeniorCitizen","children":[{"name":"No SeniorCitizen","Category":"SeniorCitizen","Level":"No SeniorCitizen","Population":5890},{"name":"SeniorCitizen","Category":"SeniorCitizen","Level":"SeniorCitizen","Population":1142}]},{"name":"Partner","children":[{"name":"No Partner","Category":"Partner","Level":"No Partner","Population":3639},{"name":"Partner","Category":"Partner","Level":"Partner","Population":3393}]},{"name":"Dependents","children":[{"name":"No Dependents","Category":"Dependents","Level":"No Dependents","Population":4933},{"name":"Dependents","Category":"Dependents","Level":"Dependents","Population":2099}]},{"name":"PhoneService","children":[{"name":"PhoneService","Category":"PhoneService","Level":"PhoneService","Population":6352},{"name":"No PhoneService","Category":"PhoneService","Level":"No PhoneService","Population":680}]},{"name":"MultipleLines","children":[{"name":"No MultipleLines","Category":"MultipleLines","Level":"No MultipleLines","Population":4065},{"name":"MultipleLines","Category":"MultipleLines","Level":"MultipleLines","Population":2967}]},{"name":"InternetService","children":[{"name":"Fiber optic","Category":"InternetService","Level":"Fiber optic","Population":3096},{"name":"DSL","Category":"InternetService","Level":"DSL","Population":2416},{"name":"No internet service","Category":"InternetService","Level":"No internet service","Population":1520}]},{"name":"OnlineSecurity","children":[{"name":"No OnlineSecurity","Category":"OnlineSecurity","Level":"No OnlineSecurity","Population":5017},{"name":"OnlineSecurity","Category":"OnlineSecurity","Level":"OnlineSecurity","Population":2015}]},{"name":"OnlineBackup","children":[{"name":"No OnlineBackup","Category":"OnlineBackup","Level":"No OnlineBackup","Population":4607},{"name":"OnlineBackup","Category":"OnlineBackup","Level":"OnlineBackup","Population":2425}]},{"name":"DeviceProtection","children":[{"name":"No DeviceProtection","Category":"DeviceProtection","Level":"No DeviceProtection","Population":4614},{"name":"DeviceProtection","Category":"DeviceProtection","Level":"DeviceProtection","Population":2418}]},{"name":"TechSupport","children":[{"name":"No TechSupport","Category":"TechSupport","Level":"No TechSupport","Population":4992},{"name":"TechSupport","Category":"TechSupport","Level":"TechSupport","Population":2040}]},{"name":"StreamingTV","children":[{"name":"No StreamingTV","Category":"StreamingTV","Level":"No StreamingTV","Population":4329},{"name":"StreamingTV","Category":"StreamingTV","Level":"StreamingTV","Population":2703}]},{"name":"StreamingMovies","children":[{"name":"No StreamingMovies","Category":"StreamingMovies","Level":"No StreamingMovies","Population":4301},{"name":"StreamingMovies","Category":"StreamingMovies","Level":"StreamingMovies","Population":2731}]},{"name":"Contract","children":[{"name":"Month-to-month","Category":"Contract","Level":"Month-to-month","Population":3875},{"name":"Two year","Category":"Contract","Level":"Two year","Population":1685},{"name":"One year","Category":"Contract","Level":"One year","Population":1472}]},{"name":"PaperlessBilling","children":[{"name":"PaperlessBilling","Category":"PaperlessBilling","Level":"PaperlessBilling","Population":4168},{"name":"No PaperlessBilling","Category":"PaperlessBilling","Level":"No PaperlessBilling","Population":2864}]},{"name":"PaymentMethod","children":[{"name":"Electronic check","Category":"PaymentMethod","Level":"Electronic check","Population":2365},{"name":"Mailed check","Category":"PaymentMethod","Level":"Mailed check","Population":1604},{"name":"Bank transfer (automatic)","Category":"PaymentMethod","Level":"Bank transfer (automatic)","Population":1542},{"name":"Credit card (automatic)","Category":"PaymentMethod","Level":"Credit card (automatic)","Population":1521}]},{"name":"Churn","children":[{"name":"No Churn","Category":"Churn","Level":"No Churn","Population":5163},{"name":"Churn","Category":"Churn","Level":"Churn","Population":1869}]}]},"options":{"size":"Population","color_min":"hsl(56,80%,80%)","color_max":"hsl(341,30%,40%)"}},"evals":[],"jsHooks":[]}</script>
+</center>
+<p><br></p>
+<p>Try clicking on the circles!</p>
+<p>At a glance, the sizes of circles in the second level give a quick overview of relative distributions of the levels of each categorical variable. Click on the circles to zoom in and out!</p>
+<p>When the occasion is right, this could be a really fun way to add some pizzazz to your visualizations. :)</p>

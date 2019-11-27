@@ -6,10 +6,20 @@
     <description>Recent content on The Perennial Beginner</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 24 Nov 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 27 Nov 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Interactive circle packing plots</title>
+      <link>/blogs/interactive-circle-packing-plots/</link>
+      <pubDate>Wed, 27 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/interactive-circle-packing-plots/</guid>
+      <description>I was looking for something suited for visualizing hierarchical categorical data that goes beyond the regular bar graphs. This D3 zoomable circle packing visualization, done using the circlepackeR package, uses a series of nested circles that you can click on and zoom in/out of. To learn more, please see the official documentation by the package author.
+As usual, we will use the IBM Telco customer churn dataset.</description>
+    </item>
     
     <item>
       <title>November 24, 2019</title>
@@ -17,7 +27,10 @@
       <pubDate>Sun, 24 Nov 2019 00:00:00 +0000</pubDate>
       
       <guid>/post/bits-and-bytes-november-24-2019/</guid>
-      <description> Projects  Useful finds   cicerone    Create guided tours of Shiny applications using driver.js.     reactable    Interactive data tables for R, based on the React Table library and made with reactR.     cicerone        Currently reading x &amp;lt;- 8 y &amp;lt;- 10 x + y ## [1] 18  Noteworthy  </description>
+      <description>Projects nlp Analysis of data science topic trends on Medium.com since 2009 [ Shiny dashboard ]
+post Python packages that take data science project write-ups beyond Jupyter notebooks [ Intelligence Refinery ]
+
+ Fun finds   cicerone    Create guided tours of Shiny applications using driver.js.     reactable    Interactive data tables for R, based on the React Table library and made with reactR.</description>
     </item>
     
     <item>
@@ -26,43 +39,8 @@
       <pubDate>Sat, 23 Nov 2019 00:00:00 +0000</pubDate>
       
       <guid>/blogs/set-up-your-own-google-custom-search-engine/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Aliquam</title>
-      <link>/blogs/aliquam/</link>
-      <pubDate>Tue, 31 Oct 2017 22:42:51 -0500</pubDate>
-      
-      <guid>/blogs/aliquam/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Tempus</title>
-      <link>/blogs/tempus/</link>
-      <pubDate>Tue, 31 Oct 2017 22:26:13 -0500</pubDate>
-      
-      <guid>/blogs/tempus/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Magna</title>
-      <link>/blogs/magna/</link>
-      <pubDate>Tue, 31 Oct 2017 22:26:09 -0500</pubDate>
-      
-      <guid>/blogs/magna/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Ipsum</title>
-      <link>/blogs/ipsum/</link>
-      <pubDate>Tue, 31 Oct 2017 21:28:43 -0500</pubDate>
-      
-      <guid>/blogs/ipsum/</guid>
-      <description>Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis tempus.</description>
+      <description>A while ago, I was trying to integrate a recipe search functionality into my grocery shopping dashboard. To get Google search results programmatically, I found this code snippet by the Stack Overflow user mbdevpl using the Python client library for Google’s discovery based APIs:
+## Import libraries from googleapiclient.discovery import build ## Set credentials my_api_key = &amp;quot;API_key&amp;quot; my_cse_id = &amp;quot;CSE_ID&amp;quot; ## Define function def google_search(search_term, api_key, cse_id, **kwargs): service = build(&amp;quot;customsearch&amp;quot;, &amp;quot;v1&amp;quot;, developerKey=api_key) res = service.</description>
     </item>
     
   </channel>

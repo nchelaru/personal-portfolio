@@ -77,9 +77,284 @@
                             </header>
                             
                             
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
+<p><br></p>
+<p>A while ago, I was trying to integrate a recipe search functionality into my grocery shopping dashboard. To get Google search results programmatically, I found this code snippet by the Stack Overflow user <b>mbdevpl</b> using the <a href="https://github.com/googleapis/google-api-python-client">Python client library for Google’s discovery based APIs</a>:</p>
+<pre class="python"><code>## Import libraries
+from googleapiclient.discovery import build
 
+## Set credentials
+my_api_key = &quot;API_key&quot; 
+my_cse_id = &quot;CSE_ID&quot;
+
+## Define function
+def google_search(search_term, api_key, cse_id, **kwargs):
+    service = build(&quot;customsearch&quot;, &quot;v1&quot;, developerKey=api_key)
+    res = service.cse().list(q=search_term, cx=cse_id, **kwargs).execute()
+    return res[&#39;items&#39;]</code></pre>
+<p><b>mbdevpl</b> provided very detailed <a href="https://stackoverflow.com/questions/37083058/programmatically-searching-google-in-python-using-custom-search">instructions</a> for setting up and querying the Google Custom Search Engine (be sure to follow <em>all</em> the steps in the answer). Creating your own <a href="https://cse.google.com/cse/">Google custom search engine</a> and <a href="https://developers.google.com/maps/documentation/javascript/get-api-key">Google API key</a> is free.</p>
+<p>As an example, if I want to look up a recipe that can uses up the peaches, turmeric, milk and spinach in my fridge:</p>
+<pre class="python"><code>## Generate search terms
+ing_list = [&#39;peaches&#39;, &#39;turmeric&#39;, &#39;milk&#39;, &#39;spinach&#39;]
+
+search_term = &#39;+&#39;.join(ing_list)
+
+## Make query, limit to 10 results
+results = google_search(search_term, my_api_key, my_cse_id, num=10)</code></pre>
+<p>The search results are returned as a list of dictionaries. We can quickly look at one of them:</p>
+<pre class="python"><code>from pprint import pprint
+
+pprint(results[2], indent=2)</code></pre>
+<pre><code>## { &#39;cacheId&#39;: &#39;5KT9gF2p3SgJ&#39;,
+##   &#39;displayLink&#39;: &#39;blog.fitbit.com&#39;,
+##   &#39;formattedUrl&#39;: &#39;https://blog.fitbit.com/the-ultimate-green-smoothie-recipe/&#39;,
+##   &#39;htmlFormattedUrl&#39;: &#39;https://blog.fitbit.com/the-ultimate-green-smoothie-recipe/&#39;,
+##   &#39;htmlSnippet&#39;: &#39;Mar 17, 2016 &lt;b&gt;...&lt;/b&gt; Dark greens: &lt;b&gt;spinach&lt;/b&gt;, kale, &#39;
+##                  &#39;chard. Fruit: banana, &lt;b&gt;peaches&lt;/b&gt;, mango, blueberries, &#39;
+##                  &#39;&lt;br&gt;\n&#39;
+##                  &#39;avocado ... Flavor: &lt;b&gt;ginger&lt;/b&gt;, &lt;b&gt;turmeric&lt;/b&gt;, matcha, &#39;
+##                  &#39;parsley, cilantro ... In a blender, add &lt;br&gt;\n&#39;
+##                  &#39;the kale and almond &lt;b&gt;milk&lt;/b&gt; and blend to break down the &#39;
+##                  &#39;leaves.&#39;,
+##   &#39;htmlTitle&#39;: &#39;The Ultimate Green Smoothie Recipe - Fitbit Blog&#39;,
+##   &#39;kind&#39;: &#39;customsearch#result&#39;,
+##   &#39;link&#39;: &#39;https://blog.fitbit.com/the-ultimate-green-smoothie-recipe/&#39;,
+##   &#39;pagemap&#39;: { &#39;cse_image&#39;: [ { &#39;src&#39;: &#39;https://blog.fitbit.com/wp-content/uploads/2016/03/2016-12-16_Ultimate_Green_Smoothie_Blog_730x485.jpg&#39;}],
+##                &#39;cse_thumbnail&#39;: [ { &#39;height&#39;: &#39;183&#39;,
+##                                     &#39;src&#39;: &#39;https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTqkQPP0AwKwTlMhVvPZ6maabGBMx_7Mh763Mab8SKa8q4EGYeKUzja96U&#39;,
+##                                     &#39;width&#39;: &#39;276&#39;}],
+##                &#39;hcard&#39;: [ {&#39;fn&#39;: &#39;Merrilyn&#39;, &#39;nickname&#39;: &#39;Merrilyn&#39;},
+##                           {&#39;fn&#39;: &#39;Anonymous&#39;, &#39;nickname&#39;: &#39;Anonymous&#39;}],
+##                &#39;metatags&#39;: [ { &#39;article:modified_time&#39;: &#39;2019-02-01T20:04:05+00:00&#39;,
+##                                &#39;article:published_time&#39;: &#39;2016-03-17T15:00:35+00:00&#39;,
+##                                &#39;article:publisher&#39;: &#39;https://facebook.com/fitbit&#39;,
+##                                &#39;article:section&#39;: &#39;Eat Well&#39;,
+##                                &#39;article:tag&#39;: &#39;recipes&#39;,
+##                                &#39;msapplication-tilecolor&#39;: &#39;#ffffff&#39;,
+##                                &#39;msapplication-tileimage&#39;: &#39;https://blog.fitbit.com/wp-content/themes/fitbit-new/assets/img/icons/favicon//ms-icon-144x144.png&#39;,
+##                                &#39;og:description&#39;: &#39;A big green drink is an easy &#39;
+##                                                  &#39;and delicious way to slip &#39;
+##                                                  &#39;superfoods into your day. &#39;
+##                                                  &#39;Make the perfect smoothie, &#39;
+##                                                  &#39;featuring veggies, protein, &#39;
+##                                                  &#39;and healthy fats.&#39;,
+##                                &#39;og:image&#39;: &#39;https://blog.fitbit.com/wp-content/uploads/2016/03/2016-12-16_Ultimate_Green_Smoothie_Blog_730x485.jpg&#39;,
+##                                &#39;og:image:height&#39;: &#39;485&#39;,
+##                                &#39;og:image:secure_url&#39;: &#39;https://blog.fitbit.com/wp-content/uploads/2016/03/2016-12-16_Ultimate_Green_Smoothie_Blog_730x485.jpg&#39;,
+##                                &#39;og:image:width&#39;: &#39;730&#39;,
+##                                &#39;og:locale&#39;: &#39;en_US&#39;,
+##                                &#39;og:site_name&#39;: &#39;Fitbit Blog&#39;,
+##                                &#39;og:title&#39;: &#39;The Ultimate Green Smoothie Recipe &#39;
+##                                            &#39;- Fitbit Blog&#39;,
+##                                &#39;og:type&#39;: &#39;article&#39;,
+##                                &#39;og:updated_time&#39;: &#39;2019-02-01T20:04:05+00:00&#39;,
+##                                &#39;og:url&#39;: &#39;https://blog.fitbit.com/the-ultimate-green-smoothie-recipe/&#39;,
+##                                &#39;theme-color&#39;: &#39;#ffffff&#39;,
+##                                &#39;twitter:card&#39;: &#39;summary&#39;,
+##                                &#39;twitter:creator&#39;: &#39;@fitbit&#39;,
+##                                &#39;twitter:description&#39;: &#39;A big green drink is an &#39;
+##                                                       &#39;easy and delicious way &#39;
+##                                                       &#39;to slip superfoods into &#39;
+##                                                       &#39;your day. Make the &#39;
+##                                                       &#39;perfect smoothie, &#39;
+##                                                       &#39;featuring veggies, &#39;
+##                                                       &#39;protein, and healthy &#39;
+##                                                       &#39;fats.&#39;,
+##                                &#39;twitter:image&#39;: &#39;https://blog.fitbit.com/wp-content/uploads/2016/03/2016-12-16_Ultimate_Green_Smoothie_Blog_730x485.jpg&#39;,
+##                                &#39;twitter:site&#39;: &#39;@fitbit&#39;,
+##                                &#39;twitter:title&#39;: &#39;The Ultimate Green Smoothie &#39;
+##                                                 &#39;Recipe - Fitbit Blog&#39;,
+##                                &#39;viewport&#39;: &#39;user-scalable=yes, &#39;
+##                                            &#39;width=device-width, &#39;
+##                                            &#39;initial-scale=1, &#39;
+##                                            &#39;maximum-scale=1&#39;}]},
+##   &#39;snippet&#39;: &#39;Mar 17, 2016 ... Dark greens: spinach, kale, chard. Fruit: &#39;
+##              &#39;banana, peaches, mango, blueberries, \n&#39;
+##              &#39;avocado ... Flavor: ginger, turmeric, matcha, parsley, cilantro &#39;
+##              &#39;... In a blender, add \n&#39;
+##              &#39;the kale and almond milk and blend to break down the leaves.&#39;,
+##   &#39;title&#39;: &#39;The Ultimate Green Smoothie Recipe - Fitbit Blog&#39;}</code></pre>
+<p>Here is how to grab bits of information that I want from each dictionary and put them into a <code>pandas</code> dataframe:</p>
+<pre class="python"><code>## Import library
+import pandas as pd
+
+## Create empty dataframe with desired columns
+df = pd.DataFrame(columns = [&#39;Title&#39;, &#39;URL&#39;, &#39;Description&#39;, &#39;Image&#39;])
+
+## Append results to dataframe row by row
+for result in results:
+  df = df.append({&#39;Title&#39;:result[&#39;title&#39;], 
+                  &#39;Description&#39;:result[&#39;snippet&#39;],
+                  &#39;Image&#39;:result[&#39;pagemap&#39;][&#39;cse_image&#39;][0][&#39;src&#39;],
+                  &#39;URL&#39;:result[&#39;formattedUrl&#39;]},
+                 ignore_index=True)</code></pre>
+<p>As a quick demonstration, the R package <code>kableExtra</code> can produce very sleek tables in which the image URLs can be rendered as images. Of course, much more styling can be done to prepare the content for an actual application.</p>
+<pre class="r"><code>## Import libraries
+library(dplyr, quietly = T)
+library(knitr, quietly = T)
+library(kableExtra)
+
+## Import dataframe variable from Python runtime
+df &lt;- py$df
+
+## Preprocess the image links to allow rendering
+df$Image = sprintf(&#39;![](%s)&#39;, df$Image)
+
+## Hyperlink the titles 
+df$Title = sprintf(&quot;[%s](%s)&quot;, df$Title, df$URL)
+
+## Drop the URL column
+df$URL &lt;- NULL
+
+kable(df) %&gt;%
+  kable_styling(full_width = F) %&gt;%
+  column_spec(1, bold = T) %&gt;%
+  column_spec(2, width = &quot;20em&quot;)</code></pre>
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Title
+</th>
+<th style="text-align:left;">
+Description
+</th>
+<th style="text-align:left;">
+Image
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://minimalistbaker.com/mango-ginger-kale-green-smoothie/">Mango Ginger Kale Green Smoothie | Minimalist Baker Recipes</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+I used spinach instead of kale..what I had on hand. Organic mango juice (from
+Costco) as the base, spinach, frozen peaches, fresh grated ginger as specified, …
+</td>
+<td style="text-align:left;">
+<img src="https://minimalistbaker.com/wp-content/uploads/2016/01/THE-BEST-Green-Smoothie-Ginger-lemon-peach-mango-and-kale-vegan-plantbased-smoothie-greensmoothie-recipe-easy-683x1024.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://pinchofyum.com/peach-green-smoothie">Peach Green Smoothie Recipe - Pinch of Yum</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+Jul 19, 2013 … This simple peach green smoothie has frozen and fresh peaches, honey, ginger,
+and spinach. Super healthy and so refreshing.
+</td>
+<td style="text-align:left;">
+<img src="https://pinchofyum.com/wp-content/uploads/2013/07/peach-green-smoothie-7-final.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://blog.fitbit.com/the-ultimate-green-smoothie-recipe/">The Ultimate Green Smoothie Recipe - Fitbit Blog</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+Mar 17, 2016 … Dark greens: spinach, kale, chard. Fruit: banana, peaches, mango, blueberries,
+avocado … Flavor: ginger, turmeric, matcha, parsley, cilantro … In a blender, add
+the kale and almond milk and blend to break down the leaves.
+</td>
+<td style="text-align:left;">
+<img src="https://blog.fitbit.com/wp-content/uploads/2016/03/2016-12-16_Ultimate_Green_Smoothie_Blog_730x485.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://www.pinterest.com/pin/56787645280344449/">The only green smoothie you’ll ever need! Fresh spinach and flax …</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+Fresh spinach and flax seeds are sweetened with citrus and bananas. … ginger
+turmeric lemonade recipe made with Whole Foods: fresh ginger and turmeric root
+and …. is made with banana, frozen mango, baby spinach, and almond milk.
+</td>
+<td style="text-align:left;">
+<img src="https://i.pinimg.com/736x/9c/e9/cb/9ce9cbd1422488865145592df73ee15a--breakfast-cups-breakfast-snacks.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://physicalkitchness.com/ginger-peach-kale-smoothie/">Ginger Peach &amp; Kale Power Smoothie</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+Aug 24, 2015 … Ginger, peaches and kale make a nutrient-dense green power … I love myself a
+delicious green smoothie and I always make it a goal to get spinach, kale or … If
+coconut milk isn’t your thing, you can substitute for almond or …
+</td>
+<td style="text-align:left;">
+<img src="https://physicalkitchness.com/wp-content/uploads/2015/08/ginger-peach-kale-smoothie-ingredients.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="allrecipes.com.au/.../summer-spinach--peach-and-pecan-salad.aspx">Summer Spinach, Peach and Pecan Salad recipe – All recipes …</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+A perfect summer salad with ripe peaches, spinach and toasted pecans. Perfect
+as a side dish at barbecues.
+</td>
+<td style="text-align:left;">
+<img src="http://aucdn.ar-cdn.com/recipes/land500/2adcf912-3430-43e6-b13b-48068b16d85f.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://www.allrecipes.com/.../banana-avocado-and-spinach-smoothie/">Banana, Avocado, and Spinach Smoothie Recipe - Allrecipes.com</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+A banana, avocado, and spinach smoothie is a quick and easy breakfast or
+snack … Blend banana, avocado, spinach, milk, ice cubes, honey, and vanilla
+extract …
+</td>
+<td style="text-align:left;">
+<img src="https://images.media-allrecipes.com/userphotos/560x315/4481367.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="allrecipes.com.au/recipes/tag-1214/peach.aspx">Peach - All recipes Australia NZ</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+This is a super easy dessert of peaches drizzled with honey and cream cheese.
+… A perfect summer salad with ripe peaches, spinach and toasted pecans.
+</td>
+<td style="text-align:left;">
+<img src="http://aucdn.ar-cdn.com/recipes/medium/aafff420-a834-4d7b-a7c3-76f97c896fd3.jpg" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://www.yummly.com/recipes/peach-pear-smoothie">10 Best Peach Pear Smoothie Recipes</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+5 days ago … kale, ginger, ice, almond milk, banana, peaches, matcha … water, protein powder
+, flax seeds, almond butter, spinach, pear and 7 more.
+</td>
+<td style="text-align:left;">
+<img src="https://lh3.googleusercontent.com/Yj-9VdE98N5E70ZZrgz8PQ07tcloOMJdOiB2eopki9DZ5ypMFAqjDe_7oh3BdNP6z5VsGCHjJ7ENWHlwcbfzgw=w1200-h630-pp-rj-v1-e365" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<a href="https://blog.myfitnesspal.com/creamy-spinach-soup-with-golden-quinoa/">Creamy Spinach Soup With Golden Quinoa | MyFitnessPal</a>
+</td>
+<td style="text-align:left;width: 20em; ">
+Jan 1, 2019 … This non-dairy version of creamed spinach soup gets its creamy texture from
+miso and almond milk. The turmeric-tinted quinoa lends some …
+</td>
+<td style="text-align:left;">
+<img src="https://blog.myfitnesspal.com/wp-content/uploads/2019/01/Creamy-Spinach-Soup-With-Golden-Quinoa.jpg" />
+</td>
+</tr>
+</tbody>
+</table>
+<p>The data obtained can also be used for much more, like text processing and image recognition.</p>
+<p>Have fun with it! :)</p>
 
                         </div>
                     </section>
