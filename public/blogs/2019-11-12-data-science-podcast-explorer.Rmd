@@ -11,6 +11,11 @@ keywords: ''
 draft: no
 ---
 
+```{r, eval=T, echo=F}
+## Import library
+library(RPostgres)
+``` 
+
 
 As a fun programming exercise, I recently created a Shiny app that allows users to explore and discover podcasts on data science, machine learning and big data. This post is a peek behind the curtains, showing how the database that powers the Shiny app is created and set up to update every 24 hours.
 
@@ -18,10 +23,12 @@ As a fun programming exercise, I recently created a Shiny app that allows users 
 
 First, we will set up the connection to my [Heroku PostgreSQL database](https://data.heroku.com/), which you can get for free (but limited to 10,000 rows). Sensitive credentials for connecting to the database should be stored somewhere safe, such as an .Renviron file (as I have done here). See [here](https://db.rstudio.com/best-practices/managing-credentials/) for a list of options for keeping database credentials safe in R.
 
+
+  
 ```{r, eval=F, echo=T, warning=FALSE, paged.print=FALSE}
 ## Import library
 library(RPostgres)
-
+ 
 # Connect to my Heroku PostgreSQL database  
 con <- dbConnect(Postgres(), 
                  dbname = "d2s6iokokikv66", 
@@ -31,19 +38,7 @@ con <- dbConnect(Postgres(),
                  password = Sys.getenv('PASSWORD'))
 ```
 
-```{r, echo=F, eval=T}
-## Import library
-library(RPostgres)
-
-con <- dbConnect(Postgres(), 
-                 dbname = "d2sjdih8tegcuc", 
-                 host = "ec2-184-72-238-22.compute-1.amazonaws.com", 
-                 port = '5432', 
-                 user = "xkktypszvisogc",
-                 password = "35b7eb67cab6ea1750e5877d61c3415851d6f1ca9c5782ec0b6bf91ede8acbea",
-                 sslmode = 'require')
-```
-
+ 
 <br>
 
 ## 2. Query iTunes Search API for podcast listing
@@ -198,23 +193,6 @@ setnames(uniques, old = c('Rating_1', 'Rating_2'), new = c('AvgRating', 'NumRati
 uniques <- filter(uniques, grepl('data|Data|machine|Machine|artificial|Artificial|intelligence|Intelligence', Description))
 ```
 
-Let's take a peek at the data:
-
-```{r, eval=T, echo=F}
-uniques <- dbGetQuery(con, "SELECT * FROM podcasts")
-```
-
-```{r message=FALSE, warning=FALSE}
-## Import libraries
-library(dplyr)
-library(knitr)
-library(kableExtra)
-
-## Preview data
-kable(t(head(uniques)), escape=F, format='html', col.names = NULL) %>%
-         kable_styling(full_width=T, bootstrap_options = c("striped", "hover",  "responsive")) %>%
-         scroll_box(width = "100%", height = "100%")  
-```
 
 <br>
 
@@ -222,18 +200,10 @@ kable(t(head(uniques)), escape=F, format='html', col.names = NULL) %>%
 
 Finally, we can put store the dataframe in our PostgreSQL database. `RPostgres` provides very intuitive implementations for writing data to the database:
 
-```{r, warning=FALSE, paged.print=FALSE}
+```{r, eval=F, echo=T, warning=FALSE, paged.print=FALSE}
 dbWriteTable(con, "podcasts", uniques, overwrite=TRUE)
 ```
-
-Check columns in table:
-
-```{r, warning=FALSE, paged.print=FALSE}
-dbListFields(con, "podcasts")
-```
-
-
-All looks like they are in order!
+ 
 
 <br>
 
@@ -243,12 +213,8 @@ We also want to test getting data out of the database, as it will be powering th
 
 First, if we need to use the SQL query results in a R script, we can go for the `RPostgres` implementation:
 
-```{r}
+```{r, eval=F, echo=T}
 df <- dbGetQuery(con, "SELECT * FROM podcasts")
-
-kable(t(head(df, 3)), escape=F, format='html', col.names = NULL) %>%
-         kable_styling(full_width=T, bootstrap_options = c("striped", "hover",  "responsive")) %>%
-         scroll_box(width = "100%", height = "100%")
 ```
 
 <br>
