@@ -1,0 +1,118 @@
+---
+title: Set up your own Google Custom Search Engine
+author: 'Nancy Chelaru'
+date: '2019-11-23'
+slug: set-up-your-own-google-custom-search-engine
+categories: []
+tags: []
+description: 'Integrate Google search into your application'
+image: gcse.jpeg
+keywords: ''
+draft: no
+---
+
+<br>
+
+ 
+A while ago, I was trying to integrate a recipe search functionality into my grocery shopping dashboard. To get Google search results programmatically, I found this code snippet by the Stack Overflow user <b>mbdevpl</b> using the [Python client library for Google's discovery based APIs](https://github.com/googleapis/google-api-python-client):
+
+```{r eval=T, echo=F}
+library(reticulate)
+use_python('/Users/nancy/miniconda3/bin/python')
+```
+
+
+```{python, eval=F, echo=T} 
+## Import libraries
+from googleapiclient.discovery import build
+
+## Set credentials
+my_api_key = "API_key" 
+my_cse_id = "CSE_ID"
+
+## Define function
+def google_search(search_term, api_key, cse_id, **kwargs):
+    service = build("customsearch", "v1", developerKey=api_key)
+    res = service.cse().list(q=search_term, cx=cse_id, **kwargs).execute()
+    return res['items']
+```
+
+<b>mbdevpl</b> provided very detailed [instructions](https://stackoverflow.com/questions/37083058/programmatically-searching-google-in-python-using-custom-search) for setting up and querying the Google Custom Search Engine (be sure to follow *all* the steps in the answer). Creating your own [Google custom search engine](https://cse.google.com/cse/) and [Google API key](https://developers.google.com/maps/documentation/javascript/get-api-key) is free.
+
+As an example, if I want to look up a recipe that can uses up the peaches, turmeric, milk and spinach in my fridge:
+
+```{python, eval=F, echo=T}
+## Generate search terms
+ing_list = ['peaches', 'turmeric', 'milk', 'spinach']
+
+search_term = '+'.join(ing_list)
+
+## Make query, limit to 10 results
+results = google_search(search_term, my_api_key, my_cse_id, num=10)
+```
+
+```{python, eval=T, echo=F}
+import pickle 
+
+with open("./gsc_results.pickle", 'rb') as f:
+    results = pickle.load(f)
+    results = results[0]
+```
+
+The search results are returned as a list of dictionaries. We can quickly look at one of them:
+
+```{python, eval=T, echo=T}
+from pprint import pprint
+
+pprint(results[2], indent=2)
+```
+
+
+Here is how to grab bits of information that I want from each dictionary and put them into a `pandas` dataframe:
+
+```{python}
+## Import library
+import pandas as pd
+
+## Create empty dataframe with desired columns
+df = pd.DataFrame(columns = ['Title', 'URL', 'Description', 'Image'])
+
+## Append results to dataframe row by row
+for result in results:
+  df = df.append({'Title':result['title'], 
+                  'Description':result['snippet'],
+                  'Image':result['pagemap']['cse_image'][0]['src'],
+                  'URL':result['formattedUrl']},
+                 ignore_index=True)
+```
+
+
+As a quick demonstration, the R package `kableExtra` can produce very sleek tables in which the image URLs can be rendered as images. Of course, much more styling can be done to prepare the content for an actual application.
+
+```{r message=FALSE}
+## Import libraries
+library(dplyr, quietly = T)
+library(knitr, quietly = T)
+library(kableExtra)
+
+## Import dataframe variable from Python runtime
+df <- py$df
+
+## Preprocess the image links to allow rendering
+df$Image = sprintf('![](%s)', df$Image)
+
+## Hyperlink the titles 
+df$Title = sprintf("[%s](%s)", df$Title, df$URL)
+
+## Drop the URL column
+df$URL <- NULL
+
+kable(df) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, bold = T) %>%
+  column_spec(2, width = "20em")
+```
+
+The data obtained can also be used for much more, like text processing and image recognition.
+
+Have fun with it! :)
