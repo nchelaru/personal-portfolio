@@ -91,16 +91,17 @@ disqusShortname = ""
     enable = true
     # Display your showcases here.
     [[params.tiles.showcase]]
-      title = "Exploring variable importance"
-      subtitle = "Methods for exploring variable importance prior to data modeling"
-      image = "pipeline.png"
-      url = "https://variable-importance.herokuapp.com/"
-
+      title = "Personal spending tracker"
+      subtitle = "A nifty little app with OCR receipt recognition and sales flyer browser"
+      image = "grocery_app.png"
+      url = "https://nancy-chelaru-centea.shinyapps.io/grocery_app/"
+      
     [[params.tiles.showcase]]
       title = "Machine learning to predict customer churn"
       subtitle = "Integrating unsupervised clustering and random forest models"
       image = "forest.png"
       url = "https://rf-streamlit.herokuapp.com/"
+      
 
     [[params.tiles.showcase]]
       title = "Dynamic sales dashboard"
@@ -115,10 +116,10 @@ disqusShortname = ""
       url = "https://nancy-chelaru-centea.shinyapps.io/assn_rules_mining/"
       
     [[params.tiles.showcase]]
-      title = "Grocery tracker"
-      subtitle = "A nifty little app with OCR receipt recognition and sales flyer browser"
-      image = "grocery_app.png"
-      url = "https://nancy-chelaru-centea.shinyapps.io/grocery_app/"
+      title = "Exploring variable importance"
+      subtitle = "Methods for exploring variable importance prior to data modeling"
+      image = "pipeline.png"
+      url = "https://variable-importance.herokuapp.com/"
 
     [[params.tiles.showcase]]
       title = "Survival analysis"
