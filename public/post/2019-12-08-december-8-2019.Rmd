@@ -1,0 +1,124 @@
+---
+title: December 8, 2019
+author: Nancy Chelaru
+date: '2019-12-08'
+slug: bits-and-bytes-december-8-2019
+categories: []
+tags: []
+description: ''
+image: bb_dec_8.png
+keywords: ''
+draft: no
+---
+
+
+## Fun finds
+
+<div class="row">
+<div class="4u 12u$(small)">
+<center>
+<img src='https://dreamrs.github.io/esquisse/reference/figures/logo_esquisse.png' height='200px'>
+<a href='https://dreamrs.github.io/esquisse/'><h4><code>esquisse</code></h4></a>
+<p>A GUI for interactive exploration of a dataset using <code>ggplot2</code> visualizations.</p>
+</center>
+</div>
+<div class="4u 12u$(small)">
+<center>
+<img src='https://target.scene7.com/is/image/Target/GUEST_c104dc4a-6653-45d0-b8a7-3d2ddcc426aa?wid=488&hei=488&fmt=pjpeg' height='200px'>
+<a href='https://adventofcode.com/2019'><h4>Advent of Code 2019</h4></a>
+<p>An Advent calendar of small programming puzzles that can be solved using any programming language.</p>
+</center>
+</div>
+<div class="4u$ 12u$(small)">
+<center>
+<img src='https://www.scikit-yb.org/en/latest/_images/banner.png' height='200px'>
+<a href='https://www.scikit-yb.org/en/latest/'><h4><code>Yellowbrick</code></h4></a>
+<p>Machine learning visualizations based on the <code>matplotlib</code> library.</p>
+</center>
+</div>
+</div>
+
+<br>
+
+## Overheard around town
+
+<div class="row">
+<div class="6u 12u$(small)">
+
+<p>In front of the front entrance to Toronto's Union Station:</p>
+
+</div>
+<div class="6u$ 12u$(small)">
+<blockquote>"This is as close as I'm ever gonna get to Harry Potter!"
+</blockquote>
+</div>
+</div>
+
+<br>
+
+## Currently reading
+
+<div class="row">
+
+<div class="3u 12u$(small)" align='center'>
+<br><br><p>A murder mystery with a "weird" fiction twist.</p>
+</div>
+
+<div class="3u 12u$(small)">
+<center>
+<img src='https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1320475957l/4703581.jpg' height='300px'>
+<center>
+</div>
+
+<div class="3u 12u$(small)">
+<center>
+<img src='https://images-na.ssl-images-amazon.com/images/I/71gRhXo0t0L.jpg' height='300px'>
+</center>
+</div>
+
+<div class="3u$ 12u$(small)" align='center'>
+<br><br><p>A great collection of Stella Park's merticulously researched and tested dessert recipes.</p>
+</div>
+
+
+
+</div>
+
+<div height="100" width="100">
+  <div height="40" width="40" align="right" vertical-align="bottom"/>
+</div>
+
+
+<br>
+
+## Added to the receipe box
+
+These past two weeks have been pastry-heavy... What can I say, it's the holidays. :)
+
+<div class="row">
+<div class="4u 12u$(small)">
+<center>
+<img src='https://www.seriouseats.com/recipes/images/2011/12/20111205-ctb-halal-chicken-rice-primary.jpg' height='200px'>
+<a href='https://www.seriouseats.com/recipes/2011/12/serious-eats-halal-cart-style-chicken-and-rice-white-sauce-recipe.html'><h4>Halal Cart-Style Chicken and Rice</h4></a>
+<p><i>Serious Eats</i></p>
+</center>
+</div>
+<div class="4u 12u$(small)">
+<center>
+<img src='https://images.squarespace-cdn.com/content/v1/55be995de4b071c106b3b4c0/1555896233211-N6TTUK9KSXKSUMTFA1ZA/ke17ZwdGBToddI8pDm48kN_ZoNdj1kv_gIvm4zjH76N7gQa3H78H3Y0txjaiv_0fDoOvxcdMmMKkDsyUqMSsMWxHk725yiiHCCLfrh8O1z4YTzHvnKhyp6Da-NYroOW3ZGjoBKy3azqku80C789l0jG2lbcDYBOeMi4OFSYem8AelHsSihC3tfiYK1eHEM7W3AVjJQSBul2wE-DqW7dygg/Black+Sesame+Blueberry+Muffins+-+Eat+Cho+Food?format=1500w' height='200px'>
+<a href='https://eatchofood.com/blog/2019/3/31/black-sesame-blueberry-muffins'><h4>Black Sesame Blueberry Muffins</h4></a>
+<p><i>Eat Cho Food</i></p>
+</center>
+</div>
+<div class="4u$ 12u$(small)">
+<center>
+<img src='https://www.cookingclassy.com/wp-content/uploads/2012/11/orange+chocolate+chip+cookies+2edited1.jpg' height='200px'>
+<a href='https://www.cookingclassy.com/orange-chocolate-chip-cookies-tastes-just-like-an-orange-milano-but-better/'><h4>Orange Chocolate Chip Cookies</h4></a>
+<p><i>Cooking Classy</i></p>
+</center>
+</div>
+</div>
+
+
+<br>
+
