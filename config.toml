@@ -224,7 +224,7 @@ disqusShortname = ""
   # Footer section
   [params.footer]
     enable = true
-    copyright = "Nancy Chelaru"
+    copyright = "2020 Nancy Chelaru"
 
     # Uses font awesome icons
     [[params.footer.social]]
